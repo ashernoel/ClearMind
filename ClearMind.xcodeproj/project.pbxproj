@@ -3,27 +3,36 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 51;
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1943BA6F52E5CD62F57A4B1F /* Pods_ClearMind.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 73C40AF38CDEBE7667A56D62 /* Pods_ClearMind.framework */; };
 		FF3EC6C3243BE3450094CB52 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF3EC6C2243BE3450094CB52 /* AppDelegate.swift */; };
 		FF3EC6C5243BE3450094CB52 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF3EC6C4243BE3450094CB52 /* SceneDelegate.swift */; };
-		FF3EC6C7243BE3450094CB52 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF3EC6C6243BE3450094CB52 /* ViewController.swift */; };
+		FF3EC6C7243BE3450094CB52 /* LoginViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF3EC6C6243BE3450094CB52 /* LoginViewController.swift */; };
 		FF3EC6CA243BE3450094CB52 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = FF3EC6C8243BE3450094CB52 /* Main.storyboard */; };
 		FF3EC6CC243BE3460094CB52 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FF3EC6CB243BE3460094CB52 /* Assets.xcassets */; };
 		FF3EC6CF243BE3460094CB52 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = FF3EC6CD243BE3460094CB52 /* LaunchScreen.storyboard */; };
+		FF3EC6D7243BE7670094CB52 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = FF3EC6D6243BE7670094CB52 /* GoogleService-Info.plist */; };
+		FF3EC6DA243C0F6F0094CB52 /* ProfileViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF3EC6D9243C0F6F0094CB52 /* ProfileViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		73C40AF38CDEBE7667A56D62 /* Pods_ClearMind.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ClearMind.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		849A26F404AD4E6B6925F72E /* Pods-ClearMind.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ClearMind.debug.xcconfig"; path = "Target Support Files/Pods-ClearMind/Pods-ClearMind.debug.xcconfig"; sourceTree = "<group>"; };
+		E7F4A6073F76BFC669F88D48 /* Pods-ClearMind.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ClearMind.release.xcconfig"; path = "Target Support Files/Pods-ClearMind/Pods-ClearMind.release.xcconfig"; sourceTree = "<group>"; };
 		FF3EC6BF243BE3450094CB52 /* ClearMind.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ClearMind.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FF3EC6C2243BE3450094CB52 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		FF3EC6C4243BE3450094CB52 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
-		FF3EC6C6243BE3450094CB52 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		FF3EC6C6243BE3450094CB52 /* LoginViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginViewController.swift; sourceTree = "<group>"; };
 		FF3EC6C9243BE3450094CB52 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		FF3EC6CB243BE3460094CB52 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		FF3EC6CE243BE3460094CB52 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		FF3EC6D0243BE3460094CB52 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		FF3EC6D6243BE7670094CB52 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "../../Downloads/GoogleService-Info.plist"; sourceTree = "<group>"; };
+		FF3EC6D8243BF0170094CB52 /* ClearMind.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ClearMind.entitlements; sourceTree = "<group>"; };
+		FF3EC6D9243C0F6F0094CB52 /* ProfileViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -31,17 +40,37 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1943BA6F52E5CD62F57A4B1F /* Pods_ClearMind.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		20EAA8E9AC7E0CE39EB29D8F /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				73C40AF38CDEBE7667A56D62 /* Pods_ClearMind.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		B859BB88A897883A695944C8 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				849A26F404AD4E6B6925F72E /* Pods-ClearMind.debug.xcconfig */,
+				E7F4A6073F76BFC669F88D48 /* Pods-ClearMind.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
 		FF3EC6B6243BE3440094CB52 = {
 			isa = PBXGroup;
 			children = (
 				FF3EC6C1243BE3450094CB52 /* ClearMind */,
 				FF3EC6C0243BE3450094CB52 /* Products */,
+				B859BB88A897883A695944C8 /* Pods */,
+				20EAA8E9AC7E0CE39EB29D8F /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -56,13 +85,16 @@
 		FF3EC6C1243BE3450094CB52 /* ClearMind */ = {
 			isa = PBXGroup;
 			children = (
+				FF3EC6D8243BF0170094CB52 /* ClearMind.entitlements */,
 				FF3EC6C2243BE3450094CB52 /* AppDelegate.swift */,
 				FF3EC6C4243BE3450094CB52 /* SceneDelegate.swift */,
-				FF3EC6C6243BE3450094CB52 /* ViewController.swift */,
+				FF3EC6C6243BE3450094CB52 /* LoginViewController.swift */,
 				FF3EC6C8243BE3450094CB52 /* Main.storyboard */,
+				FF3EC6D9243C0F6F0094CB52 /* ProfileViewController.swift */,
 				FF3EC6CB243BE3460094CB52 /* Assets.xcassets */,
 				FF3EC6CD243BE3460094CB52 /* LaunchScreen.storyboard */,
 				FF3EC6D0243BE3460094CB52 /* Info.plist */,
+				FF3EC6D6243BE7670094CB52 /* GoogleService-Info.plist */,
 			);
 			path = ClearMind;
 			sourceTree = "<group>";
@@ -74,9 +106,12 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = FF3EC6D3243BE3460094CB52 /* Build configuration list for PBXNativeTarget "ClearMind" */;
 			buildPhases = (
+				5D010BC4C3CC34E5ED3E46C5 /* [CP] Check Pods Manifest.lock */,
 				FF3EC6BB243BE3450094CB52 /* Sources */,
 				FF3EC6BC243BE3450094CB52 /* Frameworks */,
 				FF3EC6BD243BE3450094CB52 /* Resources */,
+				FB3B29B2A82B870ABD24579E /* [CP] Embed Pods Frameworks */,
+				43FFC33BA874C49CD03217AD /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -126,6 +161,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				FF3EC6CF243BE3460094CB52 /* LaunchScreen.storyboard in Resources */,
+				FF3EC6D7243BE7670094CB52 /* GoogleService-Info.plist in Resources */,
 				FF3EC6CC243BE3460094CB52 /* Assets.xcassets in Resources */,
 				FF3EC6CA243BE3450094CB52 /* Main.storyboard in Resources */,
 			);
@@ -133,13 +169,73 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		43FFC33BA874C49CD03217AD /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-ClearMind/Pods-ClearMind-resources-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-ClearMind/Pods-ClearMind-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-ClearMind/Pods-ClearMind-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		5D010BC4C3CC34E5ED3E46C5 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-ClearMind-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		FB3B29B2A82B870ABD24579E /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-ClearMind/Pods-ClearMind-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-ClearMind/Pods-ClearMind-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-ClearMind/Pods-ClearMind-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		FF3EC6BB243BE3450094CB52 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FF3EC6C7243BE3450094CB52 /* ViewController.swift in Sources */,
+				FF3EC6C7243BE3450094CB52 /* LoginViewController.swift in Sources */,
 				FF3EC6C3243BE3450094CB52 /* AppDelegate.swift in Sources */,
+				FF3EC6DA243C0F6F0094CB52 /* ProfileViewController.swift in Sources */,
 				FF3EC6C5243BE3450094CB52 /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -282,9 +378,12 @@
 		};
 		FF3EC6D4243BE3460094CB52 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 849A26F404AD4E6B6925F72E /* Pods-ClearMind.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = ClearMind/ClearMind.entitlements;
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = KVS7WF34PR;
 				INFOPLIST_FILE = ClearMind/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -299,9 +398,12 @@
 		};
 		FF3EC6D5243BE3460094CB52 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = E7F4A6073F76BFC669F88D48 /* Pods-ClearMind.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = ClearMind/ClearMind.entitlements;
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = KVS7WF34PR;
 				INFOPLIST_FILE = ClearMind/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
