@@ -27,7 +27,8 @@ class RecordViewController: UIViewController {
             "message" : textField.text ?? "(empty)",
             "conversation" : "PLACEHOLDER_CONVERSATION", // User can MANUALLY set/EDIT this later
             "speaker" : "PLACEHOLDER_SPEAKER", // PYTHON MLKIT should give this
-            "time" : Timestamp(date: Date())
+            "time" : Timestamp(date: Date()),
+            "messageID" : ref?.documentID
             ]
         ) { err in
             if let err = err {
