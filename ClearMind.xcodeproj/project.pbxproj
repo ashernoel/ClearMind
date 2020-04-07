@@ -16,6 +16,9 @@
 		FF3EC6CF243BE3460094CB52 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = FF3EC6CD243BE3460094CB52 /* LaunchScreen.storyboard */; };
 		FF3EC6D7243BE7670094CB52 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = FF3EC6D6243BE7670094CB52 /* GoogleService-Info.plist */; };
 		FF3EC6DA243C0F6F0094CB52 /* ProfileViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF3EC6D9243C0F6F0094CB52 /* ProfileViewController.swift */; };
+		FF3EC6DC243C23140094CB52 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF3EC6DB243C23140094CB52 /* SettingsViewController.swift */; };
+		FF3EC6E6243C35EF0094CB52 /* RecordViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF3EC6E5243C35EF0094CB52 /* RecordViewController.swift */; };
+		FF3EC6E8243C79EB0094CB52 /* RecordingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF3EC6E7243C79EB0094CB52 /* RecordingsViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -33,6 +36,9 @@
 		FF3EC6D6243BE7670094CB52 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "../../Downloads/GoogleService-Info.plist"; sourceTree = "<group>"; };
 		FF3EC6D8243BF0170094CB52 /* ClearMind.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ClearMind.entitlements; sourceTree = "<group>"; };
 		FF3EC6D9243C0F6F0094CB52 /* ProfileViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewController.swift; sourceTree = "<group>"; };
+		FF3EC6DB243C23140094CB52 /* SettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
+		FF3EC6E5243C35EF0094CB52 /* RecordViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordViewController.swift; sourceTree = "<group>"; };
+		FF3EC6E7243C79EB0094CB52 /* RecordingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingsViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -85,18 +91,29 @@
 		FF3EC6C1243BE3450094CB52 /* ClearMind */ = {
 			isa = PBXGroup;
 			children = (
+				FF3EC6E4243C2EFF0094CB52 /* Profile */,
 				FF3EC6D8243BF0170094CB52 /* ClearMind.entitlements */,
 				FF3EC6C2243BE3450094CB52 /* AppDelegate.swift */,
+				FF3EC6E5243C35EF0094CB52 /* RecordViewController.swift */,
+				FF3EC6E7243C79EB0094CB52 /* RecordingsViewController.swift */,
 				FF3EC6C4243BE3450094CB52 /* SceneDelegate.swift */,
 				FF3EC6C6243BE3450094CB52 /* LoginViewController.swift */,
 				FF3EC6C8243BE3450094CB52 /* Main.storyboard */,
-				FF3EC6D9243C0F6F0094CB52 /* ProfileViewController.swift */,
 				FF3EC6CB243BE3460094CB52 /* Assets.xcassets */,
 				FF3EC6CD243BE3460094CB52 /* LaunchScreen.storyboard */,
 				FF3EC6D0243BE3460094CB52 /* Info.plist */,
 				FF3EC6D6243BE7670094CB52 /* GoogleService-Info.plist */,
 			);
 			path = ClearMind;
+			sourceTree = "<group>";
+		};
+		FF3EC6E4243C2EFF0094CB52 /* Profile */ = {
+			isa = PBXGroup;
+			children = (
+				FF3EC6D9243C0F6F0094CB52 /* ProfileViewController.swift */,
+				FF3EC6DB243C23140094CB52 /* SettingsViewController.swift */,
+			);
+			path = Profile;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -235,8 +252,11 @@
 			files = (
 				FF3EC6C7243BE3450094CB52 /* LoginViewController.swift in Sources */,
 				FF3EC6C3243BE3450094CB52 /* AppDelegate.swift in Sources */,
+				FF3EC6E6243C35EF0094CB52 /* RecordViewController.swift in Sources */,
 				FF3EC6DA243C0F6F0094CB52 /* ProfileViewController.swift in Sources */,
+				FF3EC6DC243C23140094CB52 /* SettingsViewController.swift in Sources */,
 				FF3EC6C5243BE3450094CB52 /* SceneDelegate.swift in Sources */,
+				FF3EC6E8243C79EB0094CB52 /* RecordingsViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

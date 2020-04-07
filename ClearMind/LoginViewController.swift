@@ -15,7 +15,7 @@ class LoginViewController: UIViewController, FUIAuthDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-    
+
         // Check to see if the user is already logged in
         if Auth.auth().currentUser != nil {
             
@@ -44,6 +44,33 @@ class LoginViewController: UIViewController, FUIAuthDelegate {
     func authUI(_ authUI: FUIAuth, didSignInWith user: User?, error: Error?) {
         performSegue(withIdentifier: "signedIn", sender: nil)
         
+        // Check to see if the user is in the database.
+        // If the user is new, add them!
+        let db = Firestore.firestore()
+        let docRef = db.collection("users").document(user!.uid)
+        
+        docRef.getDocument { (document, error) in
+            if let document = document, document.exists {
+                // Do nothing if the user already exists
+                let dataDescription = document.data().map(String.init(describing:)) ?? "nil"
+                print("Document data: \(dataDescription)")
+                print("User already exists")
+                
+            } else {
+                // If the user does not yet exist
+                docRef.setData([
+                    "time_joined" : Timestamp(date: Date())]) { err in
+                    if let err = err {
+                        print("Error writing document: \(err)")
+                    } else {
+                        print("Document successfully written!")
+                    }
+                }
+            }
+        }
+        
+        print(user!.uid)
+        print("Tried to add!")
     }
 
 }
