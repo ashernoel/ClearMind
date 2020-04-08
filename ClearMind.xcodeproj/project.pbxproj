@@ -19,6 +19,7 @@
 		FF3EC6DC243C23140094CB52 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF3EC6DB243C23140094CB52 /* SettingsViewController.swift */; };
 		FF3EC6E6243C35EF0094CB52 /* RecordViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF3EC6E5243C35EF0094CB52 /* RecordViewController.swift */; };
 		FF3EC6E8243C79EB0094CB52 /* RecordingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF3EC6E7243C79EB0094CB52 /* RecordingsViewController.swift */; };
+		FF3EC6EE243D933B0094CB52 /* FilterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF3EC6ED243D933B0094CB52 /* FilterViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -39,6 +40,7 @@
 		FF3EC6DB243C23140094CB52 /* SettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
 		FF3EC6E5243C35EF0094CB52 /* RecordViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordViewController.swift; sourceTree = "<group>"; };
 		FF3EC6E7243C79EB0094CB52 /* RecordingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingsViewController.swift; sourceTree = "<group>"; };
+		FF3EC6ED243D933B0094CB52 /* FilterViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -91,11 +93,11 @@
 		FF3EC6C1243BE3450094CB52 /* ClearMind */ = {
 			isa = PBXGroup;
 			children = (
+				FF3EC6EC243D932A0094CB52 /* RecordingList */,
 				FF3EC6E4243C2EFF0094CB52 /* Profile */,
 				FF3EC6D8243BF0170094CB52 /* ClearMind.entitlements */,
 				FF3EC6C2243BE3450094CB52 /* AppDelegate.swift */,
 				FF3EC6E5243C35EF0094CB52 /* RecordViewController.swift */,
-				FF3EC6E7243C79EB0094CB52 /* RecordingsViewController.swift */,
 				FF3EC6C4243BE3450094CB52 /* SceneDelegate.swift */,
 				FF3EC6C6243BE3450094CB52 /* LoginViewController.swift */,
 				FF3EC6C8243BE3450094CB52 /* Main.storyboard */,
@@ -114,6 +116,15 @@
 				FF3EC6DB243C23140094CB52 /* SettingsViewController.swift */,
 			);
 			path = Profile;
+			sourceTree = "<group>";
+		};
+		FF3EC6EC243D932A0094CB52 /* RecordingList */ = {
+			isa = PBXGroup;
+			children = (
+				FF3EC6E7243C79EB0094CB52 /* RecordingsViewController.swift */,
+				FF3EC6ED243D933B0094CB52 /* FilterViewController.swift */,
+			);
+			path = RecordingList;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -252,6 +263,7 @@
 			files = (
 				FF3EC6C7243BE3450094CB52 /* LoginViewController.swift in Sources */,
 				FF3EC6C3243BE3450094CB52 /* AppDelegate.swift in Sources */,
+				FF3EC6EE243D933B0094CB52 /* FilterViewController.swift in Sources */,
 				FF3EC6E6243C35EF0094CB52 /* RecordViewController.swift in Sources */,
 				FF3EC6DA243C0F6F0094CB52 /* ProfileViewController.swift in Sources */,
 				FF3EC6DC243C23140094CB52 /* SettingsViewController.swift in Sources */,

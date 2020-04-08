@@ -74,9 +74,9 @@ class ProfileViewController: UIViewController {
     }
     
     // Remove the navigation bar from the profile page
-//    override func viewWillAppear(_ animated: Bool) {
-//        self.navigationController?.isNavigationBarHidden = true
-//    }
+    override func viewWillAppear(_ animated: Bool) {
+        self.navigationController?.isNavigationBarHidden = true
+    }
 }
 
 // The table view functions are standard
