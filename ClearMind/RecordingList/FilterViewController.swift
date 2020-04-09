@@ -30,6 +30,10 @@ class FilterViewController: UIViewController
         self.navigationController?.isNavigationBarHidden = false
     }
     
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillAppear(false)
+    }
+    
 }
 
 extension FilterViewController: UITableViewDelegate, UITableViewDataSource {
@@ -70,6 +74,7 @@ class FilterCell: UITableViewCell
     let user = Auth.auth().currentUser
     var setting: String = ""
     var settingFlag: String = ""
+    var counter = 0
     
     func populateItem(setting: String)
     {
@@ -155,6 +160,25 @@ class FilterCell: UITableViewCell
         // Add the reset button!!!
         showResetButton()
         
+        // delete all messages from filtered collection
+        let filteredColRef = db.collection("users").document(user!.uid).collection("messages_filtered")
+        
+        filteredColRef.getDocuments{ (snapshot, error) in
+            if error != nil {
+                print("Error getting filtered documents for deletion")
+            } else if (snapshot?.isEmpty)! {
+                print("Filtered messages are empty")
+                // This means the flag is false or DNE. Do NOT change query
+            } else {
+                for document in (snapshot?.documents)! {
+                    filteredColRef.document(document.documentID).delete()
+                }
+            }
+        }
+        
+        // add correct documents to filtered collection
+        createFilteredCollection()
+        
     }
     
     @objc func dateChanged(datePicker: UIDatePicker) {
@@ -210,9 +234,83 @@ class FilterCell: UITableViewCell
             }
         }
         
+        // add correct documents to filtered collection
+        createFilteredCollection()
+        
     }
+    
+    func createFilteredCollection() {
 
+        var counter = 0
+        let messagesRef = db.collection("users").document(user!.uid).collection("messages")
+        var query = messagesRef.whereField("time_seconds", isLessThan: (Timestamp(date: Date()).seconds))
 
+        // Start time
+        let startRef = db.collection("users").document(user!.uid).collection("settings")
+        startRef.whereField("start_time_flag", isEqualTo: true).getDocuments { (snapshot, err) in
+            if let err = err {
+                print("Error getting document: \(err)")
+            } else if (snapshot?.isEmpty)! {
+                print("There is no start_time. Query is not mutated")
+                // This means the flag is false or DNE. Do NOT change query
+            } else {
+                for document in (snapshot?.documents)! {
+                    print("Found a start_time in the filter")
+                    //This means the flag is true. Do update query.
+                    let myData = document.data()
+                    
+                    query = query.whereField("time_seconds", isGreaterThan: (myData["start_time"] as! Timestamp).seconds)
+                }
+            }
+            counter += 1
+            self.finalizeQuery(query: query, counter: counter)
+        }
+        
+        // End time
+        let endRef = db.collection("users").document(user!.uid).collection("settings")
+        endRef.whereField("end_time_flag", isEqualTo: true).getDocuments { (snapshot, err) in
+            if let err = err {
+                print("Error getting document: \(err)")
+            } else if (snapshot?.isEmpty)! {
+                print("There is no end_time. Query is not mutated")
+                // This means the flag is false or DNE. Do NOT change query
+                
+            } else {
+                for document in (snapshot?.documents)! {
+                    print("Found an end_time in the filter. Updating Query")
+                    //This means the flag is true. Do update query.
+                    let myData = document.data()
+
+                    query = query.whereField("time_seconds", isLessThan: (myData["end_time"] as! Timestamp).seconds)
+                    
+                }
+            }
+            counter += 1
+            self.finalizeQuery(query: query, counter: counter)
+        }
+        
+    }
+    
+    func finalizeQuery(query: Query, counter: Int) {
+        if counter == 2 {
+            // Build the collection
+            let filteredColRef = db.collection("users").document(user!.uid).collection("messages_filtered")
+            query.getDocuments { (snapshot, error) in
+                if let error = error {
+                    print("Error getting documents: \(error)")
+                } else if (snapshot?.isEmpty)! {
+                    print("snapshot is empty! There are no documents in the filter.")
+                } else {
+                    for document in (snapshot?.documents)! {
+                        print("there are documents")
+                        let myData = document.data()
+                        
+                        filteredColRef.addDocument(data: myData)
+                    }
+                }
+            }
+        }
+    }
 }
 
 

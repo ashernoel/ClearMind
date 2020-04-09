@@ -13,7 +13,7 @@ import Firebase
 class RecordingsViewController: UIViewController, UISearchBarDelegate {
     
     var recordings = [Recording]()
-    var db: Firestore!
+    var db = Firestore.firestore()
     let user = Auth.auth().currentUser
     
     @IBOutlet weak var tableView: UITableView!
@@ -22,22 +22,236 @@ class RecordingsViewController: UIViewController, UISearchBarDelegate {
     var lastDocumentSnapshot: DocumentSnapshot!
     var fetchingMore = false
     var search = false
+    var messagesRef: CollectionReference!
     
+    @IBOutlet weak var selectButtonOutlet: UIButton!
+    @IBOutlet weak var filterButtonOutlet: UIButton!
+    @IBOutlet weak var editButton: UIButton!
+    @IBOutlet weak var deleteButton: UIButton!
+    @IBOutlet weak var exportButton: UIButton!
+    @IBOutlet weak var cancelButton: UIButton!
+    
+    @IBOutlet weak var selectButton2: UIButton!
+    
+    @IBAction func selectButton(_ sender: Any) {
+        tableView.setEditing(true, animated: true)
+        //tableView.reloadData()
+        selectButton2.isHidden = true
+        filterButtonOutlet.isHidden = true
+        
+        editButton.isHidden = false
+        deleteButton.isHidden = false
+        exportButton.isHidden = false
+        cancelButton.isHidden = false
+        
+        cancelButton.addTarget(self, action: #selector(exitSelectMode), for: .touchUpInside)
+        deleteButton.addTarget(self, action: #selector(deleteSelected), for: .touchUpInside)
+        editButton.addTarget(self, action: #selector(editSelected), for: .touchUpInside)
+        exportButton.addTarget(self, action: #selector(exportSelected), for: .touchUpInside)
+
+    }
+    
+    @objc func exitSelectMode () {
+        tableView.setEditing(false, animated: true)
+        //tableView.reloadData()
+        editButton.isHidden = true
+        deleteButton.isHidden = true
+        exportButton.isHidden = true
+        cancelButton.isHidden = true
+        
+        selectButton2.isHidden = false
+        filterButtonOutlet.isHidden = false
+    }
+    
+    @objc func deleteSelected () {
+        
+        // Delete the selected rows
+        if let selectedRows = tableView.indexPathsForSelectedRows {
+            // Remove from backend
+            var items = [Recording]()
+            for indexPath in selectedRows  {
+                items.append(recordings[indexPath.row])
+                deleteEntryFromBOTHCollections(indexPath: indexPath)
+            }
+            // Remove from recordings[]
+            for item in items {
+                if let index = recordings.firstIndex(of: item) {
+                    recordings.remove(at: index)
+    
+                }
+            }
+            // Update table view
+            tableView.beginUpdates()
+            tableView.deleteRows(at: selectedRows, with: .automatic)
+            tableView.endUpdates()
+            
+        }
+    }
+    
+    @objc func editSelected () {
+        let alert = UIAlertController(title: "Edit", message: "Apply properties to all messages", preferredStyle: .alert)
+        
+        
+        //adding textfields to our dialog box
+        alert.addTextField { (textField) in
+            textField.placeholder = "Speaker (optional)"
+        }
+        alert.addTextField { (textField) in
+            textField.placeholder = "Conversation (optional)"
+        }
+        
+       
+        alert.addAction(UIAlertAction(title: "Save", style: .default, handler: { [weak alert] (_) in
+            if let textField = alert?.textFields?[0], let speaker = textField.text {
+                print("User text: \(speaker)")
+                
+                // If the user inputed something, then mutate all of the rows
+                if speaker != "" {
+                    self.applyEdits (fieldValue: "speaker", value: speaker)
+                }
+            }
+
+            if let textField = alert?.textFields?[1], let conversation = textField.text {
+                print("User text 2: \(conversation)")
+                
+                // If the user inputed something, then mutate all of the rows
+                if conversation != "" {
+                    self.applyEdits (fieldValue: "conversation", value: conversation)
+                }
+            }
+        }))
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+                
+        //finally presenting the dialog box
+        self.present(alert, animated: true, completion: nil)
+        // Push edits to the selected rows
+    }
+     
+    @objc func exportSelected () {
+        // Implement exports later
+    }
+    
+    // Run a basic mutation on a STRING field value
+    func applyEdits (fieldValue: String, value: String) {
+        
+        // Apply edits to selected rows
+            if let selectedRows = tableView.indexPathsForSelectedRows {
+                // Apply edits to backend
+                var items = [Recording]()
+                print(fieldValue)
+                print(value)
+                print(selectedRows)
+                print(items)
+                for indexPath in selectedRows  {
+                    print(indexPath)
+                    print(recordings)
+                    items.append(recordings[indexPath.row])
+                    runSimpleMutation(indexPath: indexPath, fieldValue: fieldValue, value: value)
+                }
+                // Edit recordings
+                for item in items {
+                    if let index = recordings.firstIndex(of: item) {
+                        if fieldValue == "conversation" {
+                            recordings[index].conversation = value
+                        } else if fieldValue == "speaker" {
+                            recordings[index].speaker = value
+                        } else {
+                            print("unkown fieldValue")
+                        }
+                            
+                    }
+                }
+                // Update only the correct cells in the table view
+                tableView.beginUpdates()
+                tableView.reloadRows(at: selectedRows, with: .automatic)
+                tableView.endUpdates()
+                
+            }
+    }
+    
+    // Run a mutation on BOTH collections
+    func runSimpleMutation (indexPath: IndexPath, fieldValue: String, value: String) {
+
+        var flag: Int
+        if fieldValue == "conversation" {
+            flag = 0
+        } else if fieldValue == "speaker" {
+            flag = 1
+        } else {
+            flag = 2
+        }
+        
+        guard let messageID = self.recordings[indexPath.row].messageID else {
+            return
+        }
+        
+        // Update BOTH tables
+        db.collection("users").document(user!.uid).collection("messages_filtered").whereField("messageID", isEqualTo: messageID).getDocuments() { (querySnapshot, err) in
+            if let err = err {
+                print("Error getting documents: \(err)")
+            } else {
+                for document in querySnapshot!.documents {
+                    
+                    let myData = document.data()
+                    var searchable = myData["search_insensitive"] as! [String]
+                    searchable[flag] = value
+                    
+                    document.reference.updateData([
+                        fieldValue: value,
+                       "search_insensitive" : searchable
+                    ]) { err in
+                        if let err = err {
+                            print("Error updating document: \(err)")
+                        } else {
+                            print("Document successfully updated")
+                        }
+                    }
+                }
+            }
+        }
+        db.collection("users").document(user!.uid).collection("messages").whereField("messageID", isEqualTo: messageID).getDocuments() { (querySnapshot, err) in
+            if let err = err {
+                print("Error getting documents: \(err)")
+            } else {
+                for document in querySnapshot!.documents {
+                    
+                    let myData = document.data()
+                    var searchable = myData["search_insensitive"] as! [String]
+                    searchable[flag] = value
+                    
+                    document.reference.updateData([
+                        fieldValue: value,
+                       "search_insensitive" : searchable
+                    ]) { err in
+                        if let err = err {
+                            print("Error updating document: \(err)")
+                        } else {
+                            print("Document successfully updated")
+                        }
+                    }
+                }
+            }
+        }
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
         db = Firestore.firestore()
-        
+        messagesRef = db.collection("users").document(user!.uid).collection("messages_filtered")
+    
         tableView.dataSource = self
         tableView.delegate = self
         searchBar.delegate = self
         
+        editButton.isHidden = true
+        deleteButton.isHidden = true
+        exportButton.isHidden = true
+        cancelButton.isHidden = true
         
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(loadData), name: UIApplication.willEnterForegroundNotification, object: nil)
+        // Allow multiple selection in "Select" mode
+        tableView.allowsMultipleSelectionDuringEditing = true
 
-        
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -47,6 +261,14 @@ class RecordingsViewController: UIViewController, UISearchBarDelegate {
         recordings.removeAll()
         paginateData()
     }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        // Remove content from search bar when leaving
+        searchBar.text = ""
+        search = false
+        
+    }
+    
     @IBAction func filterSegue(_ sender: Any) {
         performSegue(withIdentifier: "filterSegue", sender: self)
     }
@@ -59,7 +281,7 @@ class RecordingsViewController: UIViewController, UISearchBarDelegate {
 
 }
 
-struct Recording {
+struct Recording: Equatable {
     var message : String?
     var conversation : String?
     var speaker : String?
@@ -83,6 +305,7 @@ class MessageCell: UITableViewCell, UITextViewDelegate
     @IBOutlet weak var speaker: UILabel!
     @IBOutlet weak var conversation: UILabel!
     @IBOutlet weak var time: UILabel!
+    
     var originalTimestamp: Timestamp?
     var messageID: String?
     
@@ -93,7 +316,7 @@ class MessageCell: UITableViewCell, UITextViewDelegate
         
         createToolbar()
         message.delegate = self
-        
+            
         message.text = recording.message
         speaker.text = recording.speaker
         conversation.text = recording.conversation
@@ -105,6 +328,7 @@ class MessageCell: UITableViewCell, UITextViewDelegate
         time.text = df.string(from: (recording.time?.dateValue())!)
     }
     
+
     // This creates a toolbar and "Save" button when editing a recording
      func createToolbar()
      {
@@ -139,31 +363,48 @@ class MessageCell: UITableViewCell, UITextViewDelegate
         let speaker_lower = speaker.text!.lowercased()
         let date_lower = df.string(from: (originalTimestamp!.dateValue())).lowercased()
         let identifiers_lowercase = [conversation_lower, speaker_lower, date_lower]
-         // Update the table using a mutation
         
-        db.collection("users").document(user!.uid).collection("messages").whereField("messageID", isEqualTo: messageID!).getDocuments() { (querySnapshot, err) in
-            if let err = err {
-              print("Error getting documents: \(err)")
-            } else {
-              for document in querySnapshot!.documents {
-                document.reference.updateData([
-                    "message": get_string,
-                    "search_insensitive" : Array(Set(identifiers_lowercase + array_of_lowercase_words))
-                ]) { err in
-                    if let err = err {
-                        print("Error updating document: \(err)")
-                    } else {
-                        print("Document successfully updated")
+        // Update BOTH tables
+        db.collection("users").document(user!.uid).collection("messages_filtered").whereField("messageID", isEqualTo: messageID!).getDocuments() { (querySnapshot, err) in
+                if let err = err {
+                    print("Error getting documents: \(err)")
+                } else {
+                    for document in querySnapshot!.documents {
+                    document.reference.updateData([
+                        "message": get_string,
+                        "search_insensitive" : Array(Set(identifiers_lowercase + array_of_lowercase_words))
+                    ]) { err in
+                        if let err = err {
+                            print("Error updating document: \(err)")
+                        } else {
+                            print("Document successfully updated")
+                        }
                     }
                 }
-              }
             }
         }
-     
+        db.collection("users").document(user!.uid).collection("messages").whereField("messageID", isEqualTo: messageID!).getDocuments() { (querySnapshot, err) in
+                if let err = err {
+                    print("Error getting documents: \(err)")
+                } else {
+                    for document in querySnapshot!.documents {
+                    document.reference.updateData([
+                        "message": get_string,
+                        "search_insensitive" : Array(Set(identifiers_lowercase + array_of_lowercase_words))
+                    ]) { err in
+                        if let err = err {
+                            print("Error updating document: \(err)")
+                        } else {
+                            print("Document successfully updated")
+                        }
+                    }
+                }
+            }
+        }
+    
      }
      
 }
-
 
 
 extension RecordingsViewController: UITableViewDelegate, UITableViewDataSource {
@@ -177,12 +418,17 @@ extension RecordingsViewController: UITableViewDelegate, UITableViewDataSource {
         let recording = recordings[indexPath.row]
         cell.populateItem(recording: recording)
         
+        // Rotate the cell if seraching
         if (!search) {
             cell.transform = CGAffineTransform(scaleX: 1, y: -1)
 
         } else {
             cell.transform = CGAffineTransform(scaleX: 1, y: 1)
         }
+        // Change background color to white always, even when selected for selection mode
+        let backgroundView = UIView()
+        backgroundView.backgroundColor = UIColor.white
+        cell.selectedBackgroundView = backgroundView
 
         return cell
     }
@@ -203,6 +449,7 @@ extension RecordingsViewController: UITableViewDelegate, UITableViewDataSource {
          return "✕"
     }
     
+    
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         let offsetY = scrollView.contentOffset.y
         let contentHeight = scrollView.contentSize.height
@@ -215,28 +462,28 @@ extension RecordingsViewController: UITableViewDelegate, UITableViewDataSource {
         }
     }
     
-        
     // Paginates data
     func paginateData() {
 
         fetchingMore = true
-        var query = buildQueryWithDates()
-        print("Query after building with dates")
-        print(query)
+        
+        var query = messagesRef.whereField("time_seconds", isLessThan: (Timestamp(date: Date()).seconds))
 
-        if recordings.isEmpty {
-            query = query.order(by: "time", descending: true).limit(to: 10)
+        if self.recordings.isEmpty {
+            query = query.order(by: "time_seconds", descending: true).limit(to: 10)
             print("First 10 recordings loaded")
         } else {
-            query = query.order(by: "time", descending: true).start(afterDocument: lastDocumentSnapshot).limit(to: 10)
+            query = query.order(by: "time_seconds", descending: true).start(afterDocument: self.lastDocumentSnapshot).limit(to: 10)
             print("Next 10 recordings loaded")
         }
-
+        
         query.getDocuments { (snapshot, err) in
             if let err = err {
                 print("\(err.localizedDescription)")
             } else if snapshot!.isEmpty {
                 self.fetchingMore = true
+                self.tableView.reloadData()
+                
                 return
             } else {
                     let newRecordings = snapshot!.documents.compactMap({Recording(dictionary: $0.data())})
@@ -253,6 +500,8 @@ extension RecordingsViewController: UITableViewDelegate, UITableViewDataSource {
                 
             }
         }
+            
+        
     }
     
     // ALLOW DELETION
@@ -267,34 +516,46 @@ extension RecordingsViewController: UITableViewDelegate, UITableViewDataSource {
     
         
         if editingStyle == UITableViewCell.EditingStyle.delete {
-
             
-            guard let messageID = recordings[indexPath.row].messageID else {
-                return
-            }
-            db.collection("users").document(user!.uid).collection("messages").whereField("messageID", isEqualTo: messageID).getDocuments() { (querySnapshot, err) in
-                if let err = err {
-                  print("Error getting documents: \(err)")
-                    
-                } else {
-                  for document in querySnapshot!.documents {
+            deleteEntryFromBOTHCollections(indexPath: indexPath)
+            recordings.remove(at: indexPath.row)
+            tableView.deleteRows(at: [indexPath], with: .automatic)
+        }
+    }
+    
+    // Delete from both collections
+    func deleteEntryFromBOTHCollections(indexPath: IndexPath) {
+        
+        guard let messageID = self.recordings[indexPath.row].messageID else {
+            return
+        }
+        
+        // Remove an entry from the FILTERED collection
+        db.collection("users").document(user!.uid).collection("messages_filtered").whereField("messageID", isEqualTo: messageID).getDocuments() { (querySnapshot, err) in
+            if let err = err {
+                print("Error getting documents: \(err)")
+            } else {
+                for document in querySnapshot!.documents {
                     document.reference.delete()
-                    
-                    print("Document deleted")
-                    self.recordings.remove(at: indexPath.row)
-                    tableView.deleteRows(at: [indexPath], with: .automatic)
-
-                  }
                 }
             }
-            
+        }
+        
+        // Remove an entry from the ORIGINAL MESSAGES collection
+        db.collection("users").document(user!.uid).collection("messages").whereField("messageID", isEqualTo: messageID).getDocuments() { (querySnapshot, err) in
+            if let err = err {
+                print("Error getting documents: \(err)")
+            } else {
+                for document in querySnapshot!.documents {
+                    document.reference.delete()
+                }
+            }
         }
     }
     
     // MARK - SEARCH BAR
     // Implement the search bar
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-
         searchRecordings(search: searchText.lowercased().stripped.components(separatedBy: " "))
 
     }
@@ -309,12 +570,8 @@ extension RecordingsViewController: UITableViewDelegate, UITableViewDataSource {
     func searchRecordings(search: [String]){
 
         fetchingMore = true
-        
         if search != [""] {
-        print(search)
-        
-            let query = buildQueryWithDates()
-            query.whereField("search_insensitive", arrayContainsAny: search).getDocuments{ (querySnapshot, err) in
+            self.messagesRef.whereField("search_insensitive", arrayContainsAny: search).getDocuments{ (querySnapshot, err) in
                 if let err = err {
                     print("\(err.localizedDescription)")
                     print("Test Error")
@@ -324,13 +581,11 @@ extension RecordingsViewController: UITableViewDelegate, UITableViewDataSource {
                         self.recordings = searchedRecordings
                         self.search = true
                         self.tableView.transform = CGAffineTransform(scaleX: 1, y: 1)
-                        
+                                
                         DispatchQueue.main.async {
                             self.tableView.reloadData()
                             self.fetchingMore = true
                         }
-                        
-                        
                         print("found recordings!")
                     } else {
                         print("No recordings found")
@@ -342,84 +597,6 @@ extension RecordingsViewController: UITableViewDelegate, UITableViewDataSource {
             self.search = false
             paginateData()
         }
-
     }
-    
-    func buildQueryWithDates() -> Query {
-        
-        let db = Firestore.firestore()
-        let user = Auth.auth().currentUser
 
-        // BASE query
-        let messagesRef = db.collection("users").document(user!.uid).collection("messages")
-        
-        var query: Query!
-        var updated = false
-        
-        // Start time
-        let startRef = db.collection("users").document(user!.uid).collection("settings")
-        startRef.whereField("start_time_flag", isEqualTo: true).getDocuments { (snapshot, err) in
-            if let err = err {
-                print("Error getting document: \(err)")
-            } else if (snapshot?.isEmpty)! {
-                print("There is no start_time. Query is not mutated")
-                // This means the flag is false or DNE. Do NOT change query
-                
-            } else {
-                for document in (snapshot?.documents)! {
-                    print("Found a start_time in the filter")
-                    //This means the flag is true. Do update query.
-                    let myData = document.data()
-                    
-                    if updated {
-                        query = query.whereField("time_seconds", isGreaterThan: (myData["start_time"] as! Timestamp).seconds)
-                    } else {
-                        query = messagesRef.whereField("time_seconds", isGreaterThan: (myData["start_time"] as! Timestamp).seconds)
-                    }
-                    
-                    updated = true
-                }
-            }
-        }
-        
-        // End time
-        let endRef = db.collection("users").document(user!.uid).collection("settings")
-        endRef.whereField("end_time_flag", isEqualTo: true).getDocuments { (snapshot, err) in
-            if let err = err {
-                print("Error getting document: \(err)")
-            } else if (snapshot?.isEmpty)! {
-                print("There is no end_time. Query is not mutated")
-                // This means the flag is false or DNE. Do NOT change query
-                
-            } else {
-                for document in (snapshot?.documents)! {
-                    print("Found an end_time in the filter. Updating Query")
-                    //This means the flag is true. Do update query.
-                    let myData = document.data()
-                    
-                    print((myData["end_time"] as! Timestamp).seconds)
-                    //query = query.whereField("time", isLessThan: myData["end_time"]!)
-                    if updated {
-                        query = query.whereField("time_seconds", isLessThan: (myData["end_time"] as! Timestamp).seconds)
-                    } else {
-                        query = messagesRef.whereField("time_seconds", isLessThan: (myData["end_time"] as! Timestamp).seconds)
-                    }
-                    
-                    updated = true
-                }
-            }
-        }
-        
-        print(updated)
-        if updated {
-            return query
-        } else {
-            return messagesRef
-        }
-        
-    }
-    
-    
 }
-
-
