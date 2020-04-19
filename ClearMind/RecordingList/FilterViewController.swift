@@ -160,22 +160,6 @@ class FilterCell: UITableViewCell
         // Add the reset button!!!
         showResetButton()
         
-        // delete all messages from filtered collection
-        let filteredColRef = db.collection("users").document(user!.uid).collection("messages_filtered")
-        
-        filteredColRef.getDocuments{ (snapshot, error) in
-            if error != nil {
-                print("Error getting filtered documents for deletion")
-            } else if (snapshot?.isEmpty)! {
-                print("Filtered messages are empty")
-                // This means the flag is false or DNE. Do NOT change query
-            } else {
-                for document in (snapshot?.documents)! {
-                    filteredColRef.document(document.documentID).delete()
-                }
-            }
-        }
-        
         // add correct documents to filtered collection
         createFilteredCollection()
         
@@ -240,6 +224,21 @@ class FilterCell: UITableViewCell
     }
     
     func createFilteredCollection() {
+        
+        // Delete all old messages
+        let filteredColRef = db.collection("users").document(user!.uid).collection("messages_filtered")
+        filteredColRef.getDocuments{ (snapshot, error) in
+            if error != nil {
+                print("Error getting filtered documents for deletion")
+            } else if (snapshot?.isEmpty)! {
+                print("Filtered messages are empty")
+                // This means the flag is false or DNE. Do NOT change query
+            } else {
+                for document in (snapshot?.documents)! {
+                    filteredColRef.document(document.documentID).delete()
+                }
+            }
+        }
 
         var counter = 0
         let messagesRef = db.collection("users").document(user!.uid).collection("messages")

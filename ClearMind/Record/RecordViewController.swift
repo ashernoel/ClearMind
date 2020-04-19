@@ -37,6 +37,11 @@ class RecordViewController: UIViewController {
         db = Firestore.firestore()
     }
     
+    // Hide the navigation bar because we do not want the back button
+    override func viewWillAppear(_ animated: Bool) {
+        self.navigationController?.isNavigationBarHidden = true
+    }
+    
     func addToBothCollections(message: String, conversation: String, speaker: String, time: Timestamp, time_seconds: Int64) {
         
         // ADD TO THE MESSAGES COLLECTION
