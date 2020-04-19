@@ -12,113 +12,88 @@ import Firebase
 class FilterViewController: UIViewController
 {
     // Connect to storyboard
-    @IBOutlet var tableView: UITableView!
+    var db: Firestore!
+    let user = Auth.auth().currentUser
     
-    var filterSettings: [String] = ["start_time", "end_time"]
+    @IBOutlet weak var inputTextFieldStart: UITextField!
+    @IBOutlet weak var inputTextFieldEnd: UITextField!
+
+    private var datePicker: UIDatePicker?
+    @IBOutlet weak var resetButtonStart: UIButton!
+    @IBOutlet weak var settingLabelStart: UILabel!
+    @IBOutlet weak var resetButtonEnd: UIButton!
+    @IBOutlet weak var settingLabelEnd: UILabel!
+    
+    @IBOutlet weak var tableView: UITableView!
+    @IBOutlet weak var searchBar: UISearchBar!
+    
+    var settingStart: String = "start_time"
+    var settingStartFlag: String = "start_time_flag"
+    var settingEnd: String = "end_time"
+    var settingEndFlag: String = "end_time_flag"
+    var counter = 0
+    var search = false
+    
+    // conversations data structure:
+    // conversations[0] = converation name
+    // conversations[1] = list of people in conversation
+    // conversations[2] = time
+    // conversations[3] = convo name lowercase [for search]
+    // conversations[4] = people in lowercase [for search]
+    var conversations = [[String]]()
+    var allConversations = [Recording]()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        tableView.delegate = self
-        tableView.dataSource = self
-        // Do any additional setup after loading the view.
-        
-    }
-    
-    // Show the navigation bar because we want the back button
-    override func viewWillAppear(_ animated: Bool) {
-        self.navigationController?.isNavigationBarHidden = false
-    }
-    
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillAppear(false)
-    }
-    
-}
-
-extension FilterViewController: UITableViewDelegate, UITableViewDataSource {
-    
-    // The table view controller is standard. Not much to see here.
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int
-    {
-        return filterSettings.count
-    }
-    
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell
-    {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "FilterCell", for: indexPath) as! FilterCell
-        
-        
-        let setting = filterSettings[indexPath.row]
-        cell.populateItem(setting: setting)
-        cell.selectionStyle = UITableViewCell.SelectionStyle.none
-
-        return cell
-    }
-    
-}
-
-
-// This is the custom class for the table view cell
-//
-class FilterCell: UITableViewCell
-{
-    
-    @IBOutlet weak var inputTextField: UITextField!
-    private var datePicker: UIDatePicker?
-    @IBOutlet weak var resetButton: UIButton!
-    @IBOutlet weak var settingLabel: UILabel!
-    
-    // Connect with FIRESTORE!
-    var db: Firestore!
-    let user = Auth.auth().currentUser
-    var setting: String = ""
-    var settingFlag: String = ""
-    var counter = 0
-    
-    func populateItem(setting: String)
-    {
-        // setting string is "StartDate" "StartTime" "EndDate" or "EndTime"
-        // Connect to firestore
+        // [START setup]
+        let settings = FirestoreSettings()
+        Firestore.firestore().settings = settings
+        // [END setup]
         db = Firestore.firestore()
         
-        // Create datepicker with toolbar for the textviews
-        datePicker = UIDatePicker()
-        datePicker?.datePickerMode = .dateAndTime
-        createToolbar()
-        inputTextField.inputView = datePicker
-        inputTextField.tintColor = .clear
+        tableView.delegate = self
+        tableView.dataSource = self
         
-        // Define local variables for firestore queries
-        self.setting = setting
-        self.settingFlag = setting + "_flag"
+        // Create datepicker with toolbar for the textviews
+        let datePickerStart = UIDatePicker()
+        let datePickerEnd = UIDatePicker()
+        datePickerStart.datePickerMode = .dateAndTime
+        datePickerEnd.datePickerMode = .dateAndTime
+        createToolbarStart()
+        createToolbarEnd()
+        inputTextFieldStart.inputView = datePickerStart
+        inputTextFieldEnd.inputView = datePickerEnd
+        inputTextFieldStart.tintColor = .clear
+        inputTextFieldEnd.tintColor = .clear
         
         // Add selector functions to buttons
-        datePicker?.addTarget(self, action: #selector(dateChanged(datePicker: )), for: .valueChanged)
-        resetButton.addTarget(self, action: #selector(self.resetData), for: .touchUpInside)
+        datePickerStart.addTarget(self, action: #selector(dateChangedStart(datePicker: )), for: .valueChanged)
+        datePickerEnd.addTarget(self, action: #selector(dateChangedEnd(datePicker: )), for: .valueChanged)
+        resetButtonStart.addTarget(self, action: #selector(self.resetDataStart), for: .touchUpInside)
+        resetButtonEnd.addTarget(self, action: #selector(self.resetDataEnd), for: .touchUpInside)
         
-        // Define the label on the storyboard
-        if setting == "start_time" {
-            settingLabel.text = "START"
-        } else if setting == "end_time" {
-            settingLabel.text = "END"
-        }
+        settingLabelStart.text = "START"
+        settingLabelEnd.text = "END"
+        
+        // Populate the Conversations
+        getConversations()
+        
 
-        
         // Enable RESET button IF there is a start_time or end_time
         // Otherwise, disable it
-        let collectionRef = db.collection("users").document(user!.uid).collection("settings")
-        collectionRef.whereField(settingFlag, isEqualTo: true).getDocuments { (snapshot, err) in
+        let collectionRef1 = db.collection("users").document(user!.uid).collection("settings")
+        collectionRef1.whereField(settingStartFlag, isEqualTo: true).getDocuments { (snapshot, err) in
             if let err = err {
                 print("Error getting document: \(err)")
             } else if (snapshot?.isEmpty)! {
                 print("snapshot is empty! There are no documents.")
                 // This means the flag is false or DNE. Do NOT show reset button
-                self.resetData(self.resetButton)
+                self.resetDataStart(self.resetButtonStart)
                 
             } else {
                 for document in (snapshot?.documents)! {
-                    print("there are documents")
+                    print("there is a document")
                     //This means the flag is true. Do show reset button
                     let myData = document.data()
                     print(myData)
@@ -127,51 +102,115 @@ class FilterCell: UITableViewCell
                     let df = DateFormatter()
                     df.dateFormat = "MMMM dd, yyyy HH:MM"
                    
-                    self.inputTextField.text = df.string(from: (myData[setting] as AnyObject).dateValue())
+                    self.inputTextFieldStart.text = df.string(from: (myData[self.settingStart] as AnyObject).dateValue())
                     
                     // show reset button
-                    self.showResetButton()
+                    self.showResetButtonStart()
+                }
+            }
+        }
+        let collectionRef2 = db.collection("users").document(user!.uid).collection("settings")
+        collectionRef2.whereField(settingEndFlag, isEqualTo: true).getDocuments { (snapshot, err) in
+            if let err = err {
+                print("Error getting document: \(err)")
+            } else if (snapshot?.isEmpty)! {
+                print("snapshot is empty! There are no documents.")
+                // This means the flag is false or DNE. Do NOT show reset button
+                self.resetDataStart(self.resetButtonEnd)
+                
+            } else {
+                for document in (snapshot?.documents)! {
+                    print("there is a document")
+                    //This means the flag is true. Do show reset button
+                    let myData = document.data()
+                    print(myData)
+                    print(document)
+                    
+                    let df = DateFormatter()
+                    df.dateFormat = "MMMM dd, yyyy HH:MM"
+                   
+                    self.inputTextFieldEnd.text = df.string(from: (myData[self.settingEnd] as AnyObject).dateValue())
+                    
+                    // show reset button
+                    self.showResetButtonStart()
                 }
             }
         }
         
     }
     
+    // Show the navigation bar because we want the back button
+    override func viewWillAppear(_ animated: Bool) {
+        self.navigationController?.isNavigationBarHidden = false
+        
+    }
     
-    func createToolbar()
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillAppear(false)
+        // Remove content from search bar when leaving
+        searchBar.text = ""
+        search = false
+        
+    }
+    
+    
+    func createToolbarStart()
     {
         // Create the toolbar
         let toolBar = UIToolbar()
         toolBar.sizeToFit()
         
         // Add the done button
-        let doneButton = UIBarButtonItem(title: "Save", style: .plain, target: self, action: #selector(dismissDatePicker))
+        let doneButton = UIBarButtonItem(title: "Save", style: .plain, target: self, action: #selector(dismissDatePickerStart(sender: )))
         let flexibleSpace = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.flexibleSpace, target: self, action: nil)
         
         // Adjust the colors and present the done button as a subjview
         doneButton.tintColor = UIColor(red:0.00, green:0.69, blue:1.00, alpha:1.0)
         toolBar.setItems([flexibleSpace, doneButton], animated: false)
         toolBar.isUserInteractionEnabled = true
-        inputTextField.inputAccessoryView = toolBar
+        inputTextFieldStart.inputAccessoryView = toolBar
+    }
+    func createToolbarEnd()
+    {
+        // Create the toolbar
+        let toolBar = UIToolbar()
+        toolBar.sizeToFit()
+        
+        // Add the done button
+        let doneButton = UIBarButtonItem(title: "Save", style: .plain, target: self, action: #selector(dismissDatePickerEnd(sender: )))
+        let flexibleSpace = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.flexibleSpace, target: self, action: nil)
+        
+        // Adjust the colors and present the done button as a subjview
+        doneButton.tintColor = UIColor(red:0.00, green:0.69, blue:1.00, alpha:1.0)
+        toolBar.setItems([flexibleSpace, doneButton], animated: false)
+        toolBar.isUserInteractionEnabled = true
+        inputTextFieldEnd.inputAccessoryView = toolBar
     }
     
-    @objc func dismissDatePicker() {
-        inputTextField.endEditing(true)
+    @objc func dismissDatePickerStart(sender: UIDatePicker) {
+        inputTextFieldStart.endEditing(true)
         // Add the reset button!!!
-        showResetButton()
-        
+        showResetButtonStart()
         // add correct documents to filtered collection
         createFilteredCollection()
         
     }
     
-    @objc func dateChanged(datePicker: UIDatePicker) {
+    @objc func dismissDatePickerEnd(sender: UIDatePicker) {
+        inputTextFieldEnd.endEditing(true)
+        // Add the reset button!!!
+        showResetButtonEnd()
+        // add correct documents to filtered collection
+        createFilteredCollection()
+        
+    }
+    @objc func dateChangedStart(datePicker: UIDatePicker) {
         // Upload start setting to the cloud!
         // Add the message AND generate an ID for it with proper error handling.
         
         db.collection("users").document(user!.uid).collection("settings").document("filter_settings").setData([
-            setting : Timestamp(date: datePicker.date),
-            settingFlag : true
+            settingStart : Timestamp(date: datePicker.date),
+            settingStartFlag : true
             ], merge: true
         ) { err in
             if let err = err {
@@ -185,30 +224,82 @@ class FilterCell: UITableViewCell
         let df = DateFormatter()
         df.dateFormat = "MMMM dd, yyyy HH:MM"
         
-        inputTextField.text = df.string(from: datePicker.date)
+        inputTextFieldStart.text = df.string(from: datePicker.date)
     }
     
-    func showResetButton() {
-        // show accessory view
-        resetButton.isHidden = false
-
-        resetButton.isEnabled = true
+    @objc func dateChangedEnd(datePicker: UIDatePicker) {
+        // Upload start setting to the cloud!
+        // Add the message AND generate an ID for it with proper error handling.
         
+        db.collection("users").document(user!.uid).collection("settings").document("filter_settings").setData([
+            settingEnd : Timestamp(date: datePicker.date),
+            settingEndFlag : true
+            ], merge: true
+        ) { err in
+            if let err = err {
+                print("Error adding filter_settings: \(err)")
+            } else {
+                print("Document successfully written")
+            }
+        }
+
+        
+        let df = DateFormatter()
+        df.dateFormat = "MMMM dd, yyyy HH:MM"
+        inputTextFieldEnd.text = df.string(from: datePicker.date)
     }
     
-    @objc func resetData(_ sender: UIButton) {
+    func showResetButtonStart() {
+        // show accessory view
+        resetButtonStart.isHidden = false
+        resetButtonStart.isEnabled = true
+    }
+    func showResetButtonEnd() {
+        // show accessory view
+        resetButtonEnd.isHidden = false
+        resetButtonEnd.isEnabled = true
+    }
+    
+    @objc func resetDataStart(_ sender: UIButton) {
         // Make the reset button go away
 
-        resetButton.isEnabled = false
-        resetButton.isHidden = true
+        resetButtonStart.isEnabled = false
+        resetButtonStart.isHidden = true
         
-        inputTextField.text = ""
+        inputTextFieldStart.text = ""
         
         // Make text field long
         
         db.collection("users").document(user!.uid).collection("settings").document("filter_settings").updateData([
-            setting : FieldValue.delete(),
-            settingFlag : false
+            settingStart : FieldValue.delete(),
+            settingStartFlag : false
+            ]
+        ) { err in
+            if let err = err {
+                print("Error deleting field value: \(err)")
+            } else {
+                print("Field value successfully deleted")
+            }
+        }
+        
+        // add correct documents to filtered collection
+        createFilteredCollection()
+        
+    }
+    
+    @objc func resetDataEnd(_ sender: UIButton) {
+        // Make the reset button go away
+
+        resetButtonEnd.isEnabled = false
+        resetButtonEnd.isHidden = true
+        
+        inputTextFieldEnd.text = ""
+        
+        // Make text field long
+        
+        db.collection("users").document(user!.uid).collection("settings").document("filter_settings").updateData([
+            settingEnd : FieldValue.delete(),
+            settingEndFlag : false
             ]
         ) { err in
             if let err = err {
@@ -301,15 +392,160 @@ class FilterCell: UITableViewCell
                     print("snapshot is empty! There are no documents in the filter.")
                 } else {
                     for document in (snapshot?.documents)! {
-                        print("there are documents")
+                        print("there is a document")
                         let myData = document.data()
                         
                         filteredColRef.addDocument(data: myData)
                     }
                 }
             }
+            
+            // Repopulate the conversations
+            getConversations()
+            tableView.reloadData()
         }
     }
+    
+    func getConversations() {
+        
+        // Clear all previousrecordings
+        conversations.removeAll()
+        
+        // Get all of the data from the filtered collection
+        let messagesRef = db.collection("users").document(user!.uid).collection("messages_filtered")
+        let query = messagesRef.whereField("time_seconds", isLessThan: (Timestamp(date: Date()).seconds)).order(by: "time_seconds", descending: true)
+        query.getDocuments { (snapshot, err) in
+            if let err = err {
+                print("\(err.localizedDescription)")
+            } else {
+                    let newRecordings = snapshot!.documents.compactMap({Recording(dictionary: $0.data())})
+                    self.allConversations.append(contentsOf: newRecordings)
+                    // If NOT searching, then list bottom up and do not accept clicks!
+                if (!self.search) {
+                        self.tableView.transform = CGAffineTransform(scaleX: 1, y: -1)
+                    }
+            }
+        }
+        
+        // Define date formatter
+        let df = DateFormatter()
+        df.dateFormat = "MMMM dd, HH:MM"
+            
+        // Contruct the conversation array from the allConversations data
+        for recording in allConversations {
+            // If we do not yet have this conversation
+            
+            // if the recordig is NOT new, check if speaker is already in the speaker array. If NOT, then add it!
+            //last speakers
+            let speakers = conversations.getColumn(column: 1).last
+            print(speakers)
+            print("testing 223")
+            
+            if !conversations.getColumn(column: 0).contains(recording.conversation!) {
+                conversations.append([recording.conversation!, recording.speaker!, df.string(from: (recording.time!).dateValue()), recording.conversation!.lowercased(), recording.speaker!.lowercased()])
+            } else if !(speakers!.range(of: recording.speaker!) != nil) {
+                // not not Nil ==> nil ==> does not contain the speaker
+                conversations[-1][1] = conversations[-1][1] + " " + recording.speaker!
+                conversations[-1][4] = conversations[-1][4] + " " + (recording.speaker?.lowercased())!
+            }
+
+        }
+        
+    }
 }
+
+// Get column function
+extension Array where Element : Collection {
+    func getColumn(column : Element.Index) -> [ Element.Iterator.Element ] {
+        return self.map { $0[ column ] }
+    }
+}
+
+
+class ConversationCell: UITableViewCell, UITextViewDelegate
+{
+    // MARK: - IBOutlets
+
+    @IBOutlet weak var conversation: UILabel!
+    @IBOutlet weak var people: UILabel!
+    @IBOutlet weak var time: UILabel!
+
+    
+    let user = Auth.auth().currentUser
+    let db = Firestore.firestore()
+    // Define each cell programmatically
+    func populateItem (conversation: [String]) {
+        
+            
+        self.conversation.text = conversation[0]
+        self.people.text = conversation[1]
+        self.time.text = conversation[3]
+    
+    }
+     
+}
+
+
+extension FilterViewController: UITableViewDelegate, UITableViewDataSource {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return conversations.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "ConversationCell", for: indexPath) as! ConversationCell
+        
+        let conversation = conversations[indexPath.row]
+        cell.populateItem(conversation: conversation)
+        
+        // Rotate the cell if seraching
+        if (!search) {
+            cell.transform = CGAffineTransform(scaleX: 1, y: -1)
+
+        } else {
+            cell.transform = CGAffineTransform(scaleX: 1, y: 1)
+        }
+        // Change background color to white always, even when selected for selection mode
+        let backgroundView = UIView()
+        backgroundView.backgroundColor = UIColor.white
+        cell.selectedBackgroundView = backgroundView
+
+        return cell
+    }
+    
+    // Default table view height
+    func tableView(_ tableView: UITableView, estimatedHeightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 200.0 // You can set any other value
+    }
+    
+    // NOT ALLOW DELETION
+    func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+        false
+    }
+    
+    // MARK - SEARCH BAR
+    // Implement the search bar
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        searchRecordings(search: searchText.lowercased().stripped.components(separatedBy: " "))
+
+    }
+    
+    // Dismiss the search bar when done.
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar)
+    {
+        self.searchBar.endEditing(true)
+    }
+    
+    // Search function
+    func searchRecordings(search: [String]){
+
+        if search != [""] {
+            
+        } else {
+            self.search = false
+        }
+    }
+
+}
+
 
 

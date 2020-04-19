@@ -316,6 +316,7 @@ class MessageCell: UITableViewCell, UITextViewDelegate
         
         createToolbar()
         message.delegate = self
+        message.isEditable = true
             
         message.text = recording.message
         speaker.text = recording.speaker
