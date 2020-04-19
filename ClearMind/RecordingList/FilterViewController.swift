@@ -9,7 +9,7 @@
 import UIKit
 import Firebase
 
-class FilterViewController: UIViewController
+class FilterViewController: UIViewController, UISearchBarDelegate
 {
     // Connect to storyboard
     var db: Firestore!
@@ -20,10 +20,9 @@ class FilterViewController: UIViewController
 
     private var datePicker: UIDatePicker?
     @IBOutlet weak var resetButtonStart: UIButton!
-    @IBOutlet weak var settingLabelStart: UILabel!
     @IBOutlet weak var resetButtonEnd: UIButton!
+    @IBOutlet weak var settingLabelStart: UILabel!
     @IBOutlet weak var settingLabelEnd: UILabel!
-    
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var searchBar: UISearchBar!
     
@@ -54,6 +53,8 @@ class FilterViewController: UIViewController
         
         tableView.delegate = self
         tableView.dataSource = self
+        searchBar.delegate = self
+        
         
         // Create datepicker with toolbar for the textviews
         let datePickerStart = UIDatePicker()
@@ -77,7 +78,7 @@ class FilterViewController: UIViewController
         settingLabelEnd.text = "END"
         
         // Populate the Conversations
-        getConversations()
+       // getConversations()
         
 
         // Enable RESET button IF there is a start_time or end_time
@@ -89,8 +90,8 @@ class FilterViewController: UIViewController
             } else if (snapshot?.isEmpty)! {
                 print("snapshot is empty! There are no documents.")
                 // This means the flag is false or DNE. Do NOT show reset button
-                self.resetDataStart(self.resetButtonStart)
-                
+                self.hideDataStart(self.resetButtonStart)
+                self.createFilteredCollection()
             } else {
                 for document in (snapshot?.documents)! {
                     print("there is a document")
@@ -116,7 +117,7 @@ class FilterViewController: UIViewController
             } else if (snapshot?.isEmpty)! {
                 print("snapshot is empty! There are no documents.")
                 // This means the flag is false or DNE. Do NOT show reset button
-                self.resetDataStart(self.resetButtonEnd)
+                self.hideDataEnd(self.resetButtonEnd)
                 
             } else {
                 for document in (snapshot?.documents)! {
@@ -132,11 +133,10 @@ class FilterViewController: UIViewController
                     self.inputTextFieldEnd.text = df.string(from: (myData[self.settingEnd] as AnyObject).dateValue())
                     
                     // show reset button
-                    self.showResetButtonStart()
+                    self.showResetButtonEnd()
                 }
             }
         }
-        
     }
     
     // Show the navigation bar because we want the back button
@@ -265,7 +265,6 @@ class FilterViewController: UIViewController
 
         resetButtonStart.isEnabled = false
         resetButtonStart.isHidden = true
-        
         inputTextFieldStart.text = ""
         
         // Make text field long
@@ -282,17 +281,38 @@ class FilterViewController: UIViewController
             }
         }
         
-        // add correct documents to filtered collection
         createFilteredCollection()
-        
     }
+    
+    @objc func hideDataStart(_ sender: UIButton) {
+         // Make the reset button go away
+
+         resetButtonStart.isEnabled = false
+         resetButtonStart.isHidden = true
+         inputTextFieldStart.text = ""
+         
+         // Make text field long
+         
+         db.collection("users").document(user!.uid).collection("settings").document("filter_settings").updateData([
+             settingStart : FieldValue.delete(),
+             settingStartFlag : false
+             ]
+         ) { err in
+             if let err = err {
+                 print("Error deleting field value: \(err)")
+             } else {
+                 print("Field value successfully deleted")
+             }
+         }
+        
+         
+     }
     
     @objc func resetDataEnd(_ sender: UIButton) {
         // Make the reset button go away
 
         resetButtonEnd.isEnabled = false
         resetButtonEnd.isHidden = true
-        
         inputTextFieldEnd.text = ""
         
         // Make text field long
@@ -309,9 +329,29 @@ class FilterViewController: UIViewController
             }
         }
         
-        // add correct documents to filtered collection
         createFilteredCollection()
+    }
+    
+    @objc func hideDataEnd(_ sender: UIButton) {
+        // Make the reset button go away
+
+        resetButtonEnd.isEnabled = false
+        resetButtonEnd.isHidden = true
+        inputTextFieldEnd.text = ""
         
+        // Make text field long
+        
+        db.collection("users").document(user!.uid).collection("settings").document("filter_settings").updateData([
+            settingEnd : FieldValue.delete(),
+            settingEndFlag : false
+            ]
+        ) { err in
+            if let err = err {
+                print("Error deleting field value: \(err)")
+            } else {
+                print("Field value successfully deleted")
+            }
+        }
     }
     
     func createFilteredCollection() {
@@ -398,18 +438,22 @@ class FilterViewController: UIViewController
                         filteredColRef.addDocument(data: myData)
                     }
                 }
+                
+                print("finalized query")
+                // Repopulate the conversations
+                self.getConversations()
             }
             
-            // Repopulate the conversations
-            getConversations()
-            tableView.reloadData()
+            
         }
     }
     
     func getConversations() {
         
-        // Clear all previousrecordings
+        // Clear all previous recordings
         conversations.removeAll()
+        allConversations.removeAll()
+
         
         // Get all of the data from the filtered collection
         let messagesRef = db.collection("users").document(user!.uid).collection("messages_filtered")
@@ -421,34 +465,47 @@ class FilterViewController: UIViewController
                     let newRecordings = snapshot!.documents.compactMap({Recording(dictionary: $0.data())})
                     self.allConversations.append(contentsOf: newRecordings)
                     // If NOT searching, then list bottom up and do not accept clicks!
-                if (!self.search) {
+                    if (!self.search) {
                         self.tableView.transform = CGAffineTransform(scaleX: 1, y: -1)
                     }
+                
+                    self.loadConversations()
             }
         }
+    }
         
+    func loadConversations() {
         // Define date formatter
         let df = DateFormatter()
         df.dateFormat = "MMMM dd, HH:MM"
-            
-        // Contruct the conversation array from the allConversations data
-        for recording in allConversations {
-            // If we do not yet have this conversation
-            
-            // if the recordig is NOT new, check if speaker is already in the speaker array. If NOT, then add it!
-            //last speakers
-            let speakers = conversations.getColumn(column: 1).last
-            print(speakers)
-            print("testing 223")
-            
-            if !conversations.getColumn(column: 0).contains(recording.conversation!) {
-                conversations.append([recording.conversation!, recording.speaker!, df.string(from: (recording.time!).dateValue()), recording.conversation!.lowercased(), recording.speaker!.lowercased()])
-            } else if !(speakers!.range(of: recording.speaker!) != nil) {
-                // not not Nil ==> nil ==> does not contain the speaker
-                conversations[-1][1] = conversations[-1][1] + " " + recording.speaker!
-                conversations[-1][4] = conversations[-1][4] + " " + (recording.speaker?.lowercased())!
+        
+        print("LOADING CONVERSATINOS")
+        print(conversations)
+        if !allConversations.isEmpty {
+            // Contruct the conversation array from the allConversations data
+            for recording in allConversations {
+                // If we do not yet have this conversation
+                
+                // if the recordig is NOT new, check if speaker is already in the speaker array. If NOT, then add it!
+                //last speakers
+                
+                // If the conversation is not already contained in the name of converstaion
+                if conversations.last == nil || conversations.last![0] != recording.conversation! {
+                    conversations.append([recording.conversation!, recording.speaker!, df.string(from: (recording.time!).dateValue()), recording.conversation!.lowercased(), recording.speaker!.lowercased()])
+                } else if !conversations.last![1].contains(recording.speaker!) {
+                    // If the conversation is already in the list, then check
+                    // if not contains the speaker -> add it
+                    
+                    var lastConversation = conversations.last
+                    conversations.removeLast()
+                    lastConversation![1] = lastConversation![1] + " " + recording.speaker!
+                    lastConversation![4] = lastConversation![4] + " " + (recording.speaker?.lowercased())!
+                    
+                    conversations.append(lastConversation!)
+                }
             }
-
+            tableView.reloadData()
+            print("tried to reload")
         }
         
     }
@@ -461,8 +518,7 @@ extension Array where Element : Collection {
     }
 }
 
-
-class ConversationCell: UITableViewCell, UITextViewDelegate
+class ConversationCell: UITableViewCell
 {
     // MARK: - IBOutlets
 
@@ -470,19 +526,14 @@ class ConversationCell: UITableViewCell, UITextViewDelegate
     @IBOutlet weak var people: UILabel!
     @IBOutlet weak var time: UILabel!
 
-    
-    let user = Auth.auth().currentUser
-    let db = Firestore.firestore()
     // Define each cell programmatically
     func populateItem (conversation: [String]) {
         
-            
+        print(conversation)
         self.conversation.text = conversation[0]
         self.people.text = conversation[1]
-        self.time.text = conversation[3]
-    
+        self.time.text = conversation[2]
     }
-     
 }
 
 
@@ -492,9 +543,13 @@ extension FilterViewController: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        print("convesration!!!!")
+        
         let cell = tableView.dequeueReusableCell(withIdentifier: "ConversationCell", for: indexPath) as! ConversationCell
         
         let conversation = conversations[indexPath.row]
+        print(conversation)
+        print("conversation!!")
         cell.populateItem(conversation: conversation)
         
         // Rotate the cell if seraching
@@ -538,10 +593,30 @@ extension FilterViewController: UITableViewDelegate, UITableViewDataSource {
     // Search function
     func searchRecordings(search: [String]){
 
+        print(search)
+        
         if search != [""] {
+            self.search = true
+            
+            var tempConversations = [[String]]()
+            for conversation in conversations {
+                print(conversation)
+                
+                for word in search {
+                    if (conversation[3].contains(word) || conversation[4].contains(word))  && !tempConversations.contains(conversation) {
+                        tempConversations.append(conversation)
+                    }
+                }
+            }
+            
+            conversations = tempConversations
+            self.tableView.transform = CGAffineTransform(scaleX: 1, y: 1)
+            print(tempConversations)
+            tableView.reloadData()
             
         } else {
             self.search = false
+            getConversations()
         }
     }
 

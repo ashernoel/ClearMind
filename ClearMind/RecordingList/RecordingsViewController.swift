@@ -23,6 +23,7 @@ class RecordingsViewController: UIViewController, UISearchBarDelegate {
     var fetchingMore = false
     var search = false
     var messagesRef: CollectionReference!
+    var editCount = 0
     
     @IBOutlet weak var selectButtonOutlet: UIButton!
     @IBOutlet weak var filterButtonOutlet: UIButton!
@@ -30,7 +31,6 @@ class RecordingsViewController: UIViewController, UISearchBarDelegate {
     @IBOutlet weak var deleteButton: UIButton!
     @IBOutlet weak var exportButton: UIButton!
     @IBOutlet weak var cancelButton: UIButton!
-    
     @IBOutlet weak var selectButton2: UIButton!
     
     @IBAction func selectButton(_ sender: Any) {
@@ -100,24 +100,22 @@ class RecordingsViewController: UIViewController, UISearchBarDelegate {
             textField.placeholder = "Conversation (optional)"
         }
         
-       
+        editCount = 0
         alert.addAction(UIAlertAction(title: "Save", style: .default, handler: { [weak alert] (_) in
             if let textField = alert?.textFields?[0], let speaker = textField.text {
                 print("User text: \(speaker)")
                 
                 // If the user inputed something, then mutate all of the rows
-                if speaker != "" {
-                    self.applyEdits (fieldValue: "speaker", value: speaker)
-                }
+                self.editCount += 1
+                self.applyEdits (fieldValue: "speaker", value: speaker)
             }
 
             if let textField = alert?.textFields?[1], let conversation = textField.text {
                 print("User text 2: \(conversation)")
                 
                 // If the user inputed something, then mutate all of the rows
-                if conversation != "" {
-                    self.applyEdits (fieldValue: "conversation", value: conversation)
-                }
+                self.editCount += 1
+                self.applyEdits (fieldValue: "conversation", value: conversation)
             }
         }))
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
@@ -138,33 +136,38 @@ class RecordingsViewController: UIViewController, UISearchBarDelegate {
             if let selectedRows = tableView.indexPathsForSelectedRows {
                 // Apply edits to backend
                 var items = [Recording]()
-                print(fieldValue)
-                print(value)
-                print(selectedRows)
-                print(items)
-                for indexPath in selectedRows  {
-                    print(indexPath)
-                    print(recordings)
-                    items.append(recordings[indexPath.row])
-                    runSimpleMutation(indexPath: indexPath, fieldValue: fieldValue, value: value)
-                }
-                // Edit recordings
-                for item in items {
-                    if let index = recordings.firstIndex(of: item) {
-                        if fieldValue == "conversation" {
-                            recordings[index].conversation = value
-                        } else if fieldValue == "speaker" {
-                            recordings[index].speaker = value
-                        } else {
-                            print("unkown fieldValue")
+                
+                // If there is a value inputted, then input it before refreshing the table view
+                if value != "" {
+                    for indexPath in selectedRows  {
+                      
+                        items.append(recordings[indexPath.row])
+                        print("running mutation")
+                        runSimpleMutation(indexPath: indexPath, fieldValue: fieldValue, value: value)
+                    }
+                    // Edit recordings
+                    for item in items {
+                        print("updating tableview values")
+                        if let index = recordings.firstIndex(of: item) {
+                            if fieldValue == "conversation" {
+                                recordings[index].conversation = value
+                            } else if fieldValue == "speaker" {
+                                recordings[index].speaker = value
+                            } else {
+                                print("unkown fieldValue")
+                            }
+                                
                         }
-                            
                     }
                 }
+                
+                // If edit count is two, this means it has checked both values
+                if editCount == 2 {
                 // Update only the correct cells in the table view
-                tableView.beginUpdates()
-                tableView.reloadRows(at: selectedRows, with: .automatic)
-                tableView.endUpdates()
+                    tableView.beginUpdates()
+                    tableView.reloadRows(at: selectedRows, with: .automatic)
+                    tableView.endUpdates()
+                }
                 
             }
     }
