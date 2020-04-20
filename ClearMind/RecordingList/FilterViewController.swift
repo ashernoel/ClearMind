@@ -33,14 +33,18 @@ class FilterViewController: UIViewController, UISearchBarDelegate
     var counter = 0
     var search = false
     
+    
     // conversations data structure:
     // conversations[0] = converation name
     // conversations[1] = list of people in conversation
     // conversations[2] = time
     // conversations[3] = convo name lowercase [for search]
     // conversations[4] = people in lowercase [for search]
+    // conversations[5] = CONVERSATION ID
+    // conversations[6] = Selected status ("yes" if selected before, "no" if not)
     var conversations = [[String]]()
     var allConversations = [Recording]()
+    var selectedConversations = [String]()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -54,6 +58,10 @@ class FilterViewController: UIViewController, UISearchBarDelegate
         tableView.delegate = self
         tableView.dataSource = self
         searchBar.delegate = self
+        
+        //Make the table view editable
+        tableView.setEditing(true, animated: true)
+        tableView.allowsMultipleSelectionDuringEditing = true
         
         
         // Create datepicker with toolbar for the textviews
@@ -77,8 +85,23 @@ class FilterViewController: UIViewController, UISearchBarDelegate
         settingLabelStart.text = "START"
         settingLabelEnd.text = "END"
         
-        // Populate the Conversations
-       // getConversations()
+        // Make sure conversation_flag is false when loading
+        db.collection("users").document(user!.uid).collection("settings").document("filter_settings").setData([
+            "conversation_flag" : false,
+            "conversationIDs" : FieldValue.delete()
+            ], merge: true
+        ) { err in
+            if let err = err {
+                print("Error adding filter_settings: \(err)")
+            } else {
+                print("Document successfully written")
+            }
+        }
+ 
+        
+        // Add navigation bar button
+        self.navigationItem.rightBarButtonItem = UIBarButtonItem.init(title: "Apply", style: .done, target: self, action: #selector(self.applyFilters(sender:)))
+        self.navigationItem.rightBarButtonItem?.isEnabled = false
         
 
         // Enable RESET button IF there is a start_time or end_time
@@ -146,7 +169,7 @@ class FilterViewController: UIViewController, UISearchBarDelegate
     }
     
     override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillAppear(false)
+        super.viewWillAppear(true)
         // Remove content from search bar when leaving
         searchBar.text = ""
         search = false
@@ -161,7 +184,7 @@ class FilterViewController: UIViewController, UISearchBarDelegate
         toolBar.sizeToFit()
         
         // Add the done button
-        let doneButton = UIBarButtonItem(title: "Save", style: .plain, target: self, action: #selector(dismissDatePickerStart(sender: )))
+        let doneButton = UIBarButtonItem(title: "Apply", style: .plain, target: self, action: #selector(dismissDatePickerStart(sender: )))
         let flexibleSpace = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.flexibleSpace, target: self, action: nil)
         
         // Adjust the colors and present the done button as a subjview
@@ -177,7 +200,7 @@ class FilterViewController: UIViewController, UISearchBarDelegate
         toolBar.sizeToFit()
         
         // Add the done button
-        let doneButton = UIBarButtonItem(title: "Save", style: .plain, target: self, action: #selector(dismissDatePickerEnd(sender: )))
+        let doneButton = UIBarButtonItem(title: "Apply", style: .plain, target: self, action: #selector(dismissDatePickerEnd(sender: )))
         let flexibleSpace = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.flexibleSpace, target: self, action: nil)
         
         // Adjust the colors and present the done button as a subjview
@@ -404,7 +427,6 @@ class FilterViewController: UIViewController, UISearchBarDelegate
             } else if (snapshot?.isEmpty)! {
                 print("There is no end_time. Query is not mutated")
                 // This means the flag is false or DNE. Do NOT change query
-                
             } else {
                 for document in (snapshot?.documents)! {
                     print("Found an end_time in the filter. Updating Query")
@@ -412,6 +434,30 @@ class FilterViewController: UIViewController, UISearchBarDelegate
                     let myData = document.data()
 
                     query = query.whereField("time_seconds", isLessThan: (myData["end_time"] as! Timestamp).seconds)
+                }
+            }
+            counter += 1
+            self.finalizeQuery(query: query, counter: counter)
+        }
+        
+        
+        // Conversations
+        let convoRef = db.collection("users").document(user!.uid).collection("settings")
+        convoRef.whereField("conversation_flag", isEqualTo: true).getDocuments { (snapshot, err) in
+            if let err = err {
+                print("Error getting document: \(err)")
+            } else if (snapshot?.isEmpty)! {
+                print("There is no conversation_flag filter. Query is not mutated")
+                // This means the flag is false or DNE. Do NOT change query
+            } else {
+                for document in (snapshot?.documents)! {
+                    print("Found a conversation_flag in the filter. Updating Query")
+                    let myData = document.data()
+                    print(myData)
+                    print("CONVO BUILD ")
+                    print((myData["conversationIDs"] as! [String])[0])
+                    //This means the flag is true. Do update query.
+                    query = query.whereField("conversationID", in: myData["conversationIDs"] as! [String])
                     
                 }
             }
@@ -422,8 +468,9 @@ class FilterViewController: UIViewController, UISearchBarDelegate
     }
     
     func finalizeQuery(query: Query, counter: Int) {
-        if counter == 2 {
+        if counter == 3 {
             // Build the collection
+            print("building the collection ")
             let filteredColRef = db.collection("users").document(user!.uid).collection("messages_filtered")
             query.getDocuments { (snapshot, error) in
                 if let error = error {
@@ -454,7 +501,6 @@ class FilterViewController: UIViewController, UISearchBarDelegate
         conversations.removeAll()
         allConversations.removeAll()
 
-        
         // Get all of the data from the filtered collection
         let messagesRef = db.collection("users").document(user!.uid).collection("messages_filtered")
         let query = messagesRef.whereField("time_seconds", isLessThan: (Timestamp(date: Date()).seconds)).order(by: "time_seconds", descending: true)
@@ -472,26 +518,46 @@ class FilterViewController: UIViewController, UISearchBarDelegate
                     self.loadConversations()
             }
         }
+        
+        // Get the conversatinIDs of selected
+        let convoRef = db.collection("users").document(user!.uid).collection("settings")
+        convoRef.whereField("conversation_flag", isEqualTo: true).getDocuments { (snapshot, err) in
+            if let err = err {
+                print("Error getting document: \(err)")
+            } else if (snapshot?.isEmpty)! {
+                print("There is no conversation_flag filter. Query is not mutated")
+                // This means the flag is false or DNE. Do NOT change query
+            } else {
+                for document in (snapshot?.documents)! {
+                    print("Found a conversation_flag in the filter. Updating Query")
+                    let myData = document.data()
+                    print(myData)
+                    //This means the flag is true. Do update query.
+                    self.selectedConversations = myData["conversationIDs"] as! [String]
+                    
+                }
+            }
+        }
     }
         
     func loadConversations() {
         // Define date formatter
         let df = DateFormatter()
         df.dateFormat = "MMMM dd, HH:MM"
-        
-        print("LOADING CONVERSATINOS")
-        print(conversations)
+                
         if !allConversations.isEmpty {
             // Contruct the conversation array from the allConversations data
+            
             for recording in allConversations {
                 // If we do not yet have this conversation
                 
                 // if the recordig is NOT new, check if speaker is already in the speaker array. If NOT, then add it!
                 //last speakers
+  
                 
                 // If the conversation is not already contained in the name of converstaion
                 if conversations.last == nil || conversations.last![0] != recording.conversation! {
-                    conversations.append([recording.conversation!, recording.speaker!, df.string(from: (recording.time!).dateValue()), recording.conversation!.lowercased(), recording.speaker!.lowercased()])
+                    conversations.append([recording.conversation!, recording.speaker!, df.string(from: (recording.time!).dateValue()), recording.conversation!.lowercased(), recording.speaker!.lowercased(), recording.conversationID ?? UUID().uuidString])
                 } else if !conversations.last![1].contains(recording.speaker!) {
                     // If the conversation is already in the list, then check
                     // if not contains the speaker -> add it
@@ -500,15 +566,29 @@ class FilterViewController: UIViewController, UISearchBarDelegate
                     conversations.removeLast()
                     lastConversation![1] = lastConversation![1] + " " + recording.speaker!
                     lastConversation![4] = lastConversation![4] + " " + (recording.speaker?.lowercased())!
-                    
                     conversations.append(lastConversation!)
                 }
             }
             tableView.reloadData()
             print("tried to reload")
         }
-        
     }
+    
+    @objc func applyFilters(sender: UIBarButtonItem) {
+        
+        // Create filtered collection using dates AND Converation selection
+        createFilteredCollection()
+        
+        // Unwind back to normal view
+        //self.navigationController?.popViewController(animated: true)
+
+
+    }
+    
+    @IBAction func unwindSegue(segue: UIStoryboardSegue) {
+        super.viewWillAppear(true)
+    }
+
 }
 
 // Get column function
@@ -525,11 +605,10 @@ class ConversationCell: UITableViewCell
     @IBOutlet weak var conversation: UILabel!
     @IBOutlet weak var people: UILabel!
     @IBOutlet weak var time: UILabel!
-
+    
     // Define each cell programmatically
     func populateItem (conversation: [String]) {
         
-        print(conversation)
         self.conversation.text = conversation[0]
         self.people.text = conversation[1]
         self.time.text = conversation[2]
@@ -543,13 +622,10 @@ extension FilterViewController: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        print("convesration!!!!")
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "ConversationCell", for: indexPath) as! ConversationCell
         
         let conversation = conversations[indexPath.row]
-        print(conversation)
-        print("conversation!!")
         cell.populateItem(conversation: conversation)
         
         // Rotate the cell if seraching
@@ -561,7 +637,7 @@ extension FilterViewController: UITableViewDelegate, UITableViewDataSource {
         }
         // Change background color to white always, even when selected for selection mode
         let backgroundView = UIView()
-        backgroundView.backgroundColor = UIColor.white
+        backgroundView.backgroundColor = UIColor.lightGray
         cell.selectedBackgroundView = backgroundView
 
         return cell
@@ -576,6 +652,59 @@ extension FilterViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
         false
     }
+    
+    // If there are no rows selected, then turn the CONVERSATION FLAG TO TRUE
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        print("ROWROW: selected row")
+        db.collection("users").document(user!.uid).collection("settings").document("filter_settings").setData([
+                "conversation_flag" : true,
+                "conversationIDs" : FieldValue.arrayUnion([conversations[indexPath.row][5]])
+                ], merge: true
+            ) { err in
+                if let err = err {
+                    print("Error adding filter_settings: \(err)")
+                } else {
+                    print("Document successfully written")
+                }
+            }
+        self.navigationItem.rightBarButtonItem?.isEnabled = true
+
+        
+    }
+    
+    // If there are no more rows selected, then turn the CONVERSATION FLAG TO FALSE
+    func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
+        
+        // If there are none left, then make the conversation flag false, otherwise true!
+        if tableView.indexPathsForSelectedRows == nil {
+            db.collection("users").document(user!.uid).collection("settings").document("filter_settings").setData([
+                "conversation_flag" : false
+                ], merge: true
+            ) { err in
+                if let err = err {
+                    print("Error adding filter_settings: \(err)")
+                } else {
+                    print("Document successfully written")
+                }
+            }
+            
+            self.navigationItem.rightBarButtonItem?.isEnabled = false
+        }
+        
+        // also always remove
+        db.collection("users").document(user!.uid).collection("settings").document("filter_settings").setData([
+                "conversationIDs" : FieldValue.arrayRemove([conversations[indexPath.row][5]])
+                ], merge: true
+            ) { err in
+                if let err = err {
+                    print("Error adding filter_settings: \(err)")
+                } else {
+                    print("Document successfully written")
+                }
+            }
+    
+    }
+    
     
     // MARK - SEARCH BAR
     // Implement the search bar
@@ -592,15 +721,12 @@ extension FilterViewController: UITableViewDelegate, UITableViewDataSource {
     
     // Search function
     func searchRecordings(search: [String]){
-
-        print(search)
         
         if search != [""] {
             self.search = true
             
             var tempConversations = [[String]]()
             for conversation in conversations {
-                print(conversation)
                 
                 for word in search {
                     if (conversation[3].contains(word) || conversation[4].contains(word))  && !tempConversations.contains(conversation) {
@@ -611,7 +737,6 @@ extension FilterViewController: UITableViewDelegate, UITableViewDataSource {
             
             conversations = tempConversations
             self.tableView.transform = CGAffineTransform(scaleX: 1, y: 1)
-            print(tempConversations)
             tableView.reloadData()
             
         } else {

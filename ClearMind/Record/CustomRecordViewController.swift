@@ -13,6 +13,9 @@ class CustomRecordViewController: UIViewController
     var db: Firestore!
     let user = Auth.auth().currentUser
     
+    var oldConversation: String?
+    var newConversationID = UUID().uuidString
+    
     @IBOutlet weak var tableView: UITableView!
     
     var recordSettings: [String] = ["time", "conversation", "speaker", "message"]
@@ -32,6 +35,26 @@ class CustomRecordViewController: UIViewController
         
         // Add navigation bar button
         self.navigationItem.rightBarButtonItem = UIBarButtonItem.init(title: "Add", style: .done, target: self, action: #selector(self.addMessage(sender:)))
+        
+        // Get most recent conversation
+        let messagesRef = db.collection("users").document(user!.uid).collection("messages")
+        let query = messagesRef.order(by: "time_seconds", descending: true).limit(to: 1)
+        
+        query.getDocuments { (snapshot, err) in
+            if let err = err {
+                print("\(err.localizedDescription)")
+            } else if snapshot!.isEmpty {
+                // No conversations
+                return
+            } else {
+                let lastRecording = snapshot!.documents.compactMap({Recording(dictionary: $0.data())})
+                
+                self.oldConversation = lastRecording[0].conversation
+                self.newConversationID = lastRecording[0].conversationID ?? UUID().uuidString
+            }
+        
+            
+        }
         
     }
     
@@ -66,7 +89,8 @@ class CustomRecordViewController: UIViewController
             addToBothCollections(message: messageCell.inputTextField.text!, conversation: conversationCell.inputTextField.text!, speaker: speakerCell.inputTextField.text!, time: timeCell.timestamp!, time_seconds: timeCell.timestamp!.seconds)
             
 
-            performSegue(withIdentifier: "addCustomRecording", sender: nil)
+            self.navigationController?.popViewController(animated: true)
+
         }
         
     }
@@ -254,6 +278,12 @@ extension CustomRecordViewController {
     
     func addToBothCollections(message: String, conversation: String, speaker: String, time: Timestamp, time_seconds: Int64) {
         
+        // If the conversation is not the same as the old one, then create a new conversationID
+        if oldConversation == nil || conversation != oldConversation {
+            newConversationID = UUID().uuidString
+        }
+        oldConversation = conversation
+        
         // ADD TO THE MESSAGES COLLECTION
         let user = Auth.auth().currentUser
         let df = DateFormatter()
@@ -274,6 +304,7 @@ extension CustomRecordViewController {
             "time" : time,
             "time_seconds" : time_seconds,
             "messageID" : newDocumentID,
+            "conversationID": newConversationID,
             
             // Firestore only handles LOWERCASE and can only serach in arrays
             "search_insensitive" : Array(Set(identifiers_lowercase + array_of_lowercase_words))
@@ -352,7 +383,6 @@ extension CustomRecordViewController {
             
             // Add the message AND generate an ID for it with proper error handling.
             let newDocumentID = UUID().uuidString
-            
             db.collection("users").document(user!.uid).collection("messages_filtered").addDocument(data: [
                 "message" : message,
                 "conversation" : conversation, // User can MANUALLY set/EDIT this later
@@ -360,6 +390,7 @@ extension CustomRecordViewController {
                 "time" : time,
                 "time_seconds" : time_seconds,
                 "messageID" : newDocumentID,
+                "conversationID": newConversationID,
                 
                 // Firestore only handles LOWERCASE and can only serach in arrays
                 "search_insensitive" : Array(Set(identifiers_lowercase + array_of_lowercase_words))
@@ -373,6 +404,10 @@ extension CustomRecordViewController {
             }
         }
     }
+    
+    // Unwind segue
+    @IBAction func unwindSegue(segue: UIStoryboardSegue) { }
+
 }
 
 

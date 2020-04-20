@@ -24,6 +24,7 @@ class RecordingsViewController: UIViewController, UISearchBarDelegate {
     var search = false
     var messagesRef: CollectionReference!
     var editCount = 0
+    var newEditConversationID: String?
     
     @IBOutlet weak var selectButtonOutlet: UIButton!
     @IBOutlet weak var filterButtonOutlet: UIButton!
@@ -97,7 +98,7 @@ class RecordingsViewController: UIViewController, UISearchBarDelegate {
             textField.placeholder = "Speaker (optional)"
         }
         alert.addTextField { (textField) in
-            textField.placeholder = "Conversation (optional)"
+            textField.placeholder = "Conversation (optional; new ID)"
         }
         
         editCount = 0
@@ -115,6 +116,7 @@ class RecordingsViewController: UIViewController, UISearchBarDelegate {
                 
                 // If the user inputed something, then mutate all of the rows
                 self.editCount += 1
+                self.newEditConversationID = UUID().uuidString
                 self.applyEdits (fieldValue: "conversation", value: conversation)
             }
         }))
@@ -199,14 +201,29 @@ class RecordingsViewController: UIViewController, UISearchBarDelegate {
                     var searchable = myData["search_insensitive"] as! [String]
                     searchable[flag] = value
                     
-                    document.reference.updateData([
-                        fieldValue: value,
-                       "search_insensitive" : searchable
-                    ]) { err in
-                        if let err = err {
-                            print("Error updating document: \(err)")
-                        } else {
-                            print("Document successfully updated")
+                    // If the FLAG is 0, or CONVEERSATION, then ADD TEH NEW TAG
+                    if flag == 0 {
+                        document.reference.updateData([
+                            fieldValue: value,
+                           "search_insensitive" : searchable,
+                           "conversationID" : self.newEditConversationID
+                        ]) { err in
+                            if let err = err {
+                                print("Error updating document: \(err)")
+                            } else {
+                                print("Document successfully updated")
+                            }
+                        }
+                    } else if flag == 1 {
+                        document.reference.updateData([
+                            fieldValue: value,
+                           "search_insensitive" : searchable,
+                        ]) { err in
+                            if let err = err {
+                                print("Error updating document: \(err)")
+                            } else {
+                                print("Document successfully updated")
+                            }
                         }
                     }
                 }
@@ -263,6 +280,7 @@ class RecordingsViewController: UIViewController, UISearchBarDelegate {
         // Make sure all data correct
         recordings.removeAll()
         paginateData()
+        print("tried to paginate")
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -290,6 +308,7 @@ struct Recording: Equatable {
     var speaker : String?
     var time : Timestamp?
     var messageID: String?
+    var conversationID: String?
     
     init?(dictionary: [String : Any]) {
         self.message = dictionary["message"] as? String
@@ -297,6 +316,7 @@ struct Recording: Equatable {
         self.speaker = dictionary["speaker"] as? String
         self.time = dictionary["time"] as? Timestamp
         self.messageID = dictionary["messageID"] as? String
+        self.conversationID = dictionary["conversationID"] as? String
     }
 }
 

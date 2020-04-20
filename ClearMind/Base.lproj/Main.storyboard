@@ -814,43 +814,43 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" textAlignment="center" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="4eJ-tf-AwN">
-                                <rect key="frame" x="20" y="20" width="374" height="34"/>
+                                <rect key="frame" x="20" y="10" width="374" height="34"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                 <textInputTraits key="textInputTraits"/>
                             </textField>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="TTM-oU-0UG">
-                                <rect key="frame" x="32" y="29" width="33" height="16"/>
+                                <rect key="frame" x="32" y="19" width="33" height="16"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="13"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="U6d-za-aKi">
-                                <rect key="frame" x="340" y="23" width="42" height="28"/>
+                                <rect key="frame" x="340" y="13" width="42" height="28"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="13"/>
                                 <state key="normal" title="CLEAR"/>
                             </button>
                             <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" textAlignment="center" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="M5z-2g-S8w">
-                                <rect key="frame" x="20" y="74" width="374" height="34"/>
+                                <rect key="frame" x="20" y="54" width="374" height="34"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                 <textInputTraits key="textInputTraits"/>
                             </textField>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="n8C-1U-EWg">
-                                <rect key="frame" x="32" y="83" width="33" height="16"/>
+                                <rect key="frame" x="32" y="63" width="33" height="16"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="13"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="pCH-SX-dOi">
-                                <rect key="frame" x="340" y="77" width="42" height="28"/>
+                                <rect key="frame" x="340" y="57" width="42" height="28"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="13"/>
                                 <state key="normal" title="CLEAR"/>
                             </button>
-                            <searchBar contentMode="redraw" placeholder="Search Conversations" translatesAutoresizingMaskIntoConstraints="NO" id="g5h-Lq-G5X">
-                                <rect key="frame" x="0.0" y="128" width="414" height="56"/>
+                            <searchBar contentMode="redraw" placeholder="Filtered Conversations" translatesAutoresizingMaskIntoConstraints="NO" id="g5h-Lq-G5X">
+                                <rect key="frame" x="0.0" y="98" width="414" height="56"/>
                                 <textInputTraits key="textInputTraits"/>
                             </searchBar>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="Hyh-SW-tOP">
-                                <rect key="frame" x="0.0" y="184" width="414" height="541"/>
+                                <rect key="frame" x="0.0" y="154" width="414" height="571"/>
                                 <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
                                 <prototypes>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="ConversationCell" id="Ndp-Wi-Evx" customClass="ConversationCell" customModule="ClearMind" customModuleProvider="target">
@@ -908,7 +908,7 @@
                         </subviews>
                         <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
                         <constraints>
-                            <constraint firstItem="4eJ-tf-AwN" firstAttribute="top" secondItem="vji-cE-Rjz" secondAttribute="top" constant="20" id="3my-yC-Q5q"/>
+                            <constraint firstItem="4eJ-tf-AwN" firstAttribute="top" secondItem="vji-cE-Rjz" secondAttribute="top" constant="10" id="3my-yC-Q5q"/>
                             <constraint firstItem="vji-cE-Rjz" firstAttribute="trailing" secondItem="pCH-SX-dOi" secondAttribute="trailing" constant="32" id="7t0-c9-IHE"/>
                             <constraint firstItem="U6d-za-aKi" firstAttribute="top" secondItem="4eJ-tf-AwN" secondAttribute="top" constant="3" id="Bcw-XC-iMX"/>
                             <constraint firstItem="vji-cE-Rjz" firstAttribute="trailing" secondItem="U6d-za-aKi" secondAttribute="trailing" constant="32" id="DfN-ic-9QI"/>
@@ -917,7 +917,7 @@
                             <constraint firstItem="n8C-1U-EWg" firstAttribute="top" secondItem="M5z-2g-S8w" secondAttribute="bottom" constant="-25" id="Ije-zw-evo"/>
                             <constraint firstItem="vji-cE-Rjz" firstAttribute="trailing" secondItem="Hyh-SW-tOP" secondAttribute="trailing" id="Ob7-V2-iBF"/>
                             <constraint firstItem="g5h-Lq-G5X" firstAttribute="leading" secondItem="vji-cE-Rjz" secondAttribute="leading" id="OoD-1g-0i4"/>
-                            <constraint firstItem="M5z-2g-S8w" firstAttribute="top" secondItem="4eJ-tf-AwN" secondAttribute="bottom" constant="20" id="PbW-SF-3Yd"/>
+                            <constraint firstItem="M5z-2g-S8w" firstAttribute="top" secondItem="4eJ-tf-AwN" secondAttribute="bottom" constant="10" id="PbW-SF-3Yd"/>
                             <constraint firstItem="TTM-oU-0UG" firstAttribute="leading" secondItem="vji-cE-Rjz" secondAttribute="leading" constant="32" id="Ujv-12-A8E"/>
                             <constraint firstItem="TTM-oU-0UG" firstAttribute="top" secondItem="4eJ-tf-AwN" secondAttribute="top" constant="9" id="XhC-bu-FbT"/>
                             <constraint firstItem="Hyh-SW-tOP" firstAttribute="top" secondItem="g5h-Lq-G5X" secondAttribute="bottom" id="ce1-tI-hzT"/>
@@ -929,7 +929,7 @@
                             <constraint firstItem="4eJ-tf-AwN" firstAttribute="centerX" secondItem="akA-fY-j89" secondAttribute="centerX" id="tfA-mU-3fI"/>
                             <constraint firstItem="vji-cE-Rjz" firstAttribute="trailing" secondItem="M5z-2g-S8w" secondAttribute="trailing" constant="20" id="uD0-9j-r3l"/>
                             <constraint firstItem="vji-cE-Rjz" firstAttribute="bottom" secondItem="Hyh-SW-tOP" secondAttribute="bottom" id="w3e-Qp-Goz"/>
-                            <constraint firstItem="g5h-Lq-G5X" firstAttribute="top" secondItem="M5z-2g-S8w" secondAttribute="bottom" constant="20" id="yc1-tQ-gNE"/>
+                            <constraint firstItem="g5h-Lq-G5X" firstAttribute="top" secondItem="M5z-2g-S8w" secondAttribute="bottom" constant="10" id="yc1-tQ-gNE"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="vji-cE-Rjz"/>
                     </view>
@@ -944,11 +944,13 @@
                         <outlet property="settingLabelEnd" destination="n8C-1U-EWg" id="yTS-Ev-b6Q"/>
                         <outlet property="settingLabelStart" destination="TTM-oU-0UG" id="SBc-7f-aR0"/>
                         <outlet property="tableView" destination="Hyh-SW-tOP" id="tdO-pu-DNO"/>
+                        <segue destination="NpZ-rC-WCA" kind="unwind" identifier="applyFilter" unwindAction="unwindToViewControllerWithSegue:" id="V5q-As-7Ys"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="7fq-Cq-xKn" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+                <exit id="NpZ-rC-WCA" userLabel="Exit" sceneMemberID="exit"/>
             </objects>
-            <point key="canvasLocation" x="4650.7246376811599" y="1963.3928571428571"/>
+            <point key="canvasLocation" x="4672" y="1970"/>
         </scene>
         <!--Record-->
         <scene sceneID="M08-CX-cbz">

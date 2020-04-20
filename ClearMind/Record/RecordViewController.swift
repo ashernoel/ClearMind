@@ -12,8 +12,10 @@ import Firebase
 class RecordViewController: UIViewController {
     
     var db: Firestore!
-
     let user = Auth.auth().currentUser
+    
+    var oldConversation: String?
+    var newConversationID = UUID().uuidString
 
  
     @IBOutlet weak var textField: UITextField!
@@ -44,6 +46,12 @@ class RecordViewController: UIViewController {
     
     func addToBothCollections(message: String, conversation: String, speaker: String, time: Timestamp, time_seconds: Int64) {
         
+        // If the conversation is not the same as the old one, then create a new conversationID
+        if oldConversation == nil || conversation != oldConversation {
+            newConversationID = UUID().uuidString
+        }
+        oldConversation = conversation
+        
         // ADD TO THE MESSAGES COLLECTION
         let user = Auth.auth().currentUser
         let df = DateFormatter()
@@ -64,6 +72,7 @@ class RecordViewController: UIViewController {
             "time" : time,
             "time_seconds" : time_seconds,
             "messageID" : newDocumentID,
+            "conversationID": newConversationID,
             
             // Firestore only handles LOWERCASE and can only serach in arrays
             "search_insensitive" : Array(Set(identifiers_lowercase + array_of_lowercase_words))
@@ -142,7 +151,6 @@ class RecordViewController: UIViewController {
             
             // Add the message AND generate an ID for it with proper error handling.
             let newDocumentID = UUID().uuidString
-            
             db.collection("users").document(user!.uid).collection("messages_filtered").addDocument(data: [
                 "message" : message,
                 "conversation" : conversation, // User can MANUALLY set/EDIT this later
@@ -150,6 +158,7 @@ class RecordViewController: UIViewController {
                 "time" : time,
                 "time_seconds" : time_seconds,
                 "messageID" : newDocumentID,
+                "conversationID": newConversationID,
                 
                 // Firestore only handles LOWERCASE and can only serach in arrays
                 "search_insensitive" : Array(Set(identifiers_lowercase + array_of_lowercase_words))
